@@ -1,0 +1,83 @@
+html,
+body {
+  height: 100%;
+  align-content: center;
+}
+body {
+  display: flex;
+  flex-direction: column;
+}
+.content {
+  flex: 1; /* Makes the content grow to fill available space */
+}
+
+h1 {
+  text-align: center !important;
+}
+
+th {
+  text-align: center !important;
+}
+
+td {
+  text-align: center !important;
+}
+
+a.link-with-icon {
+  text-decoration: none !important;
+}
+
+a.link-with-icon::before {
+  font: var(--fa-font-solid);
+  content: " \f08e  ";
+}
+
+.inline-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px; /* Adjust spacing between text and progress bar */
+}
+.progress {
+  flex-grow: 1; /* Optional: Allows the progress bar to resize nicely */
+  width: auto; /* Ensures it adjusts to the available space */
+  height: 10px; /* Adjust height of progress bar */
+}
+
+.custom-button {
+  background-color: #f8f9fa; /* Light grey background */
+  color: #000; /* Black text */
+  border: 1px solid #ccc; /* Light border */
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.custom-button:hover {
+  background-color: #6c757d; /* Dark grey on hover */
+  color: #fff; /* White text on hover */
+  border-color: #6c757d; /* Match border color on hover */
+}
+
+.table-hover tbody tr:hover {
+  background-color: #6c757d; /* Dark grey */
+  color: #fff; /* White text */
+  cursor: pointer; /* Indicate it's clickable */
+}
+
+.task-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-info h5 {
+  margin: 0;
+}
+
+.task-load {
+  font-weight: bold;
+}
+
