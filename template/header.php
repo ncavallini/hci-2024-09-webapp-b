@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizing Mental Load</title>
+    <title>Visualizing Mental Load (B)</title>
 
     <link rel="stylesheet" href="inc/styles.css">
 
@@ -32,7 +32,7 @@
 
 <body>
 <header class="container-fluid">
- <!--   <h1 class="display-3 text-center">Visualizing Mental Load</h1>
+ <!--   <h1 class="display-3 text-center">Visualizing Mental Load (B)</h1>
     <hr>
     <br>
 -->
