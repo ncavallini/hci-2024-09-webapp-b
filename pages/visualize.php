@@ -17,7 +17,7 @@ try {
 }
 
 // Get the current user's ID
-$user_id = Auth::user()['user_id'];
+$user_id = Auth::user()['user_id']; 
 
 // Fetch all tasks for the current user across all groups
 $sql = "
