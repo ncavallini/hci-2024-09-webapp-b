@@ -22,7 +22,7 @@ if (!$group) {
 <br>
 
 <h2>Coins</h2>
-<p class="lead"> <i class="fa fa-coins"></i> You earned <strong><?php echo ($group['coins']); ?> coins.</strong></p>
+<p class="lead"> <i class="fa fa-coins"></i> The group earned <strong><?php echo ($group['coins']); ?> coins.</strong></p>
 
 <h2>Members & Tasks</h2>
 <a class="no-loading link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" id="set-accordion-status-link"></a>
