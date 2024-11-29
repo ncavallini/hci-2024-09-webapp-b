@@ -75,6 +75,7 @@ if (!$group) {
                                 <th data-dt-order="disable"><!-- Edit --></th>
                                 <?php if ($is_current_user): ?>
                                 <th data-dt-order="disable"><!-- Transfer --></th>
+                                <th data-dt-order="disable"><!-- Survey --></th>
                                 <?php endif; ?>
                                 <th data-dt-order="disable"><!-- Delete --></th>
                             </tr>
@@ -111,6 +112,12 @@ if (!$group) {
                                     <a class="btn btn-sm btn-outline-primary" 
                                        href="index.php?page=transfer_task&group_id=<?php echo $group_id; ?>&task_id=<?php echo $task['group_task_id']; ?>">
                                         <i class="fa fa-share"></i>
+                                    </a>
+                                </td>
+                                <td>
+                                    <a class="btn btn-sm btn-outline-primary" 
+                                       href="index.php?page=survey&task_id=<?php echo $task['group_task_id']; ?>&group=<?php echo $group_id; ?>">
+                                        <i class="fa fa-check-square-o"></i>
                                     </a>
                                 </td>
                                 <?php endif; ?>
