@@ -64,6 +64,11 @@ else if($is_completed == 1 && $on_time == 0) {
 }
 else if($is_completed == 0) {
     $coins_to_add = -$estimated_load;
+    $t = $group_id == 0 ? 'tasks' : 'group_tasks';
+    $c = $group_id == 0 ? 'task_id' : 'group_task_id';
+    $sql = "UPDATE $t SET completed_at = NULL WHERE $c = ?";
+    $stmt = $connection->prepare($sql);
+    $stmt->execute([$task_id]);
 }
 
 
