@@ -21,9 +21,6 @@ if (!$group) {
 <h1>Group <i><?php echo ($group['name']); ?></i></h1>
 <br>
 
-<h2>Coins</h2>
-<p class="lead"> <i class="fa fa-coins"></i> The group earned <strong><?php echo ($group['coins']); ?> coins.</strong></p>
-
 <h2>Members & Tasks</h2>
 <a class="no-loading link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" id="set-accordion-status-link"></a>
 <p>&nbsp;</p>
@@ -74,7 +71,6 @@ if (!$group) {
                                 <th>Due</th>
                                 <th data-dt-order="disable"><!-- Edit --></th>
                                 <?php if ($is_current_user): ?>
-                                <th data-dt-order="disable"><!-- Transfer --></th>
                                 <th data-dt-order="disable"><!-- Survey --></th>
                                 <?php endif; ?>
                                 <th data-dt-order="disable"><!-- Delete --></th>
@@ -109,16 +105,12 @@ if (!$group) {
                                 </td>
                                 <?php if ($is_current_user): ?>
                                 <td>
-                                    <a class="btn btn-sm btn-outline-primary" 
-                                       href="index.php?page=transfer_task&group_id=<?php echo $group_id; ?>&task_id=<?php echo $task['group_task_id']; ?>">
-                                        <i class="fa fa-share"></i>
-                                    </a>
-                                </td>
-                                <td>
+                                
                                     <a class="btn btn-sm btn-outline-primary" 
                                        href="index.php?page=survey&task_id=<?php echo $task['group_task_id']; ?>&group=<?php echo $group_id; ?>">
                                         <i class="fa fa-check-square-o"></i>
                                     </a>
+                                
                                 </td>
                                 <?php endif; ?>
                                 <td>
