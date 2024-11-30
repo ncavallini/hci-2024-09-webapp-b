@@ -9,29 +9,51 @@ if (!Auth::is_logged_in()) {
 
 $user_id = Auth::user()['user_id'];
 
-// Query to fetch mental load and related task data
+// Query to fetch tasks and group tasks
 $sql = "
     SELECT 
-        generated_dates.load_date,
-        gt.title AS task_title, 
-        g.name AS group_name,
-        gt.estimated_load 
-    FROM 
-        (
-            SELECT 
-                CURDATE() - INTERVAL seq.seq DAY AS load_date
-            FROM 
-                (SELECT 0 AS seq UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6) seq
-        ) generated_dates
-    JOIN 
-        group_tasks gt ON DATE(gt.created_at) <= generated_dates.load_date
-        AND (gt.completed_at IS NULL OR DATE(gt.completed_at) > generated_dates.load_date)
-    JOIN 
-        groups g ON gt.group_id = g.group_id
-    WHERE 
-        gt.user_id = :user_id
-    ORDER BY 
-        generated_dates.load_date ASC";
+    generated_dates.load_date,
+    t.title AS task_title,
+    NULL AS group_name, -- Personal tasks have no group name
+    t.estimated_load
+FROM 
+    (
+        SELECT 
+            CURDATE() - INTERVAL seq.seq DAY AS load_date
+        FROM 
+            (SELECT 0 AS seq UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6) seq
+    ) generated_dates
+LEFT JOIN 
+    tasks t ON DATE(t.created_at) <= generated_dates.load_date
+    AND (t.completed_at IS NULL OR DATE(t.completed_at) > generated_dates.load_date) -- Include incomplete tasks
+    AND t.user_id = :user_id
+
+UNION ALL
+
+SELECT 
+    generated_dates.load_date,
+    gt.title AS task_title,
+    g.name AS group_name, -- Group tasks include group name
+    gt.estimated_load
+FROM 
+    (
+        SELECT 
+            CURDATE() - INTERVAL seq.seq DAY AS load_date
+        FROM 
+            (SELECT 0 AS seq UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6) seq
+    ) generated_dates
+LEFT JOIN 
+    group_tasks gt ON DATE(gt.created_at) <= generated_dates.load_date
+    AND (gt.completed_at IS NULL OR DATE(gt.completed_at) > generated_dates.load_date) -- Include incomplete group tasks
+    AND gt.user_id = :user_id
+JOIN 
+    groups g ON gt.group_id = g.group_id
+ORDER BY 
+    load_date ASC;
+
+
+
+";
 
 $stmt = $dbconnection->prepare($sql);
 $stmt->execute(['user_id' => $user_id]);
@@ -46,7 +68,7 @@ foreach ($load_data as $row) {
     }
     $groupedData[$date]['total_load'] += $row['estimated_load'];
 
-    $groupName = $row['group_name'];
+    $groupName = $row['group_name'] ?? 'Personal'; // Default to 'Personal' if no group name
     if (!isset($groupedData[$date]['groups'][$groupName])) {
         $groupedData[$date]['groups'][$groupName] = [];
     }
@@ -81,7 +103,7 @@ $taskDetails = json_encode($groupedData); // Task details grouped by date
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="taskDetailsModalLabel">Task Details</h5>
+                    <h5 class="modal-title" id="taskDetailsModalLabel">Contributing Tasks</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -199,7 +221,6 @@ $taskDetails = json_encode($groupedData); // Task details grouped by date
                         new bootstrap.Modal(document.getElementById("taskDetailsModal")).show();
                     }
                 }
-
             }
         };
 
@@ -207,3 +228,4 @@ $taskDetails = json_encode($groupedData); // Task details grouped by date
         new Chart(ctx, config);
     });
     </script>
+

@@ -8,37 +8,66 @@
 
 <div class="card">
   <div class="card-header">
-  <div class="card-title h5">Tasks due <i>Today</i> </div>
+  <div class="card-title h5">Tasks to be completed <i>Before</i> the Deadline</div>
   </div>
   <div class="card-body">
-    <?php
-    $sql = "(SELECT t.task_id, t.title, 0 AS group_id, NULL as group_name FROM tasks t WHERE DATE(due_date) = :due_date AND user_id = :user_id AND is_completed = 0) UNION ALL 
-            (SELECT gt.group_task_id, gt.title, gt.group_id, g.name as group_name FROM group_tasks gt JOIN groups g USING(group_id) WHERE DATE(due_date) = :due_date AND user_id = :user_id AND is_completed = 0)";
-    $stmt = $dbconnection->prepare($sql);
-    $tasks = $stmt->fetchAll();
-    $stmt->bindValue(":due_date", date("Y-m-d"));
-    $stmt->bindValue(":user_id", Auth::user()['user_id']);
+  <?php
+// SQL query to fetch all tasks that are not overdue and not completed
+$sql = "
+    (SELECT 
+        t.task_id, 
+        t.title, 
+        0 AS group_id, 
+        NULL AS group_name 
+     FROM 
+        tasks t 
+     WHERE 
+        DATE(due_date) >= CURRENT_DATE 
+        AND user_id = :user_id 
+        AND is_completed = 0
+    )
+    UNION ALL
+    (SELECT 
+        gt.group_task_id, 
+        gt.title, 
+        gt.group_id, 
+        g.name AS group_name 
+     FROM 
+        group_tasks gt 
+     JOIN 
+        groups g USING(group_id) 
+     WHERE 
+        DATE(due_date) >= CURRENT_DATE 
+        AND user_id = :user_id 
+        AND is_completed = 0
+    )";
 
-    $stmt->execute();
-    $tasks = $stmt->fetchAll();
+$stmt = $dbconnection->prepare($sql);
+$stmt->bindValue(":user_id", Auth::user()['user_id']);
+$stmt->execute();
 
-    if (count($tasks) == 0) {
-      echo "<p class='text-center'>No (incomplete) tasks due today</p>";
-      goto end_task_due_today;
-    } 
-    echo '<ul class="list-group list-group-flush">';
-    foreach($tasks as $task) {
-      echo "<li class='list-group-item'>{$task['title']} &nbsp;&nbsp;";
-      if($task['group_id'] != 0) {
+$tasks = $stmt->fetchAll();
+
+// If no tasks found, display a message
+if (count($tasks) == 0) {
+    echo "<p class='text-center'>No incomplete tasks are due or upcoming</p>";
+    goto end_task_due;
+}
+
+// Display the tasks in a list
+echo '<ul class="list-group list-group-flush">';
+foreach ($tasks as $task) {
+    echo "<li class='list-group-item'>{$task['title']} &nbsp;&nbsp;";
+    if ($task['group_id'] != 0) {
         echo "<span class='badge bg-secondary rounded-pill'>{$task['group_name']}</span>";
-      }
-      else {
+    } else {
         echo "<span class='badge bg-primary rounded-pill'>Personal</span>";
-      }
-      echo "</li>"; 
     }
-    end_task_due_today:
-    ?>
+    echo "</li>";
+}
+end_task_due:
+?>
+
   </div>
 </div>
 <p>&nbsp;&nbsp;</p>
@@ -65,43 +94,53 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
           </tr>
         </thead>
         <tbody>
+          <!-- Display Group Names -->
           <tr>
-          <?php
-            foreach($groups as $group) {
-              echo "<td><p class='h5'>{$group['name']}</p></td>";
-            }
-          ?>
+            <?php foreach ($groups as $group): ?>
+              <td><p class='h5'><?php echo htmlspecialchars($group['name']); ?></p></td>
+            <?php endforeach; ?>
+          </tr>
+
+          <!-- Line Under Group Names -->
+          <tr>
+            <?php foreach ($groups as $group): ?>
+              <td style="border-bottom: 2px solid #000;"></td>
+            <?php endforeach; ?>
           </tr>
 
           <?php
+          // Initialize variables
           $max_members = 0;
-          foreach($groups as &$group) {
-            $query = "SELECT m.username, u.first_name, u.last_name FROM membership m JOIN users u USING(username) WHERE group_id = ?";
-            $stmt = $dbconnection->prepare($query);
-            $stmt->execute([$group['group_id']]);
-            $members = $stmt->fetchAll();
-            $group['members'] = $members;
-            $max_members = max($max_members, count($members));
-        
-          }
-          
-          for($i = 0; $i < $max_members; $i++) {
-            echo "<tr class='border-start'>";
-            foreach($groups as $group) {
-              if($i < count($group['members'])) {
-                $name = $group['members'][$i]['first_name'] . ' ' . $group['members'][$i]['last_name'] ;
-                echo "<td class='border-start'>{$name}</td>";
-              }
-              else {
-                echo "<td class='border-start'></td>";
-              }
-            }
-            echo "</tr>";
-            
+          $group_members = [];
+
+          // Fetch members for each group
+          foreach ($groups as $group) {
+              $query = "SELECT m.username, u.first_name, u.last_name 
+                        FROM membership m 
+                        JOIN users u USING(username) 
+                        WHERE group_id = ?";
+              $stmt = $dbconnection->prepare($query);
+              $stmt->execute([$group['group_id']]);
+              $members = $stmt->fetchAll();
+              $group_members[] = $members;
+              $max_members = max($max_members, count($members));
           }
 
+          // Render rows for members
+          for ($i = 0; $i < $max_members; $i++) {
+            echo "<tr>";
+            foreach ($group_members as $members) {
+                if (isset($members[$i])) {
+                    $name = htmlspecialchars($members[$i]['first_name']) . ' ' . htmlspecialchars($members[$i]['last_name']);
+                    echo "<td style='border-right: 1px solid #000; border-left: 1px solid #000;'>{$name}</td>";
+                } else {
+                    echo "<td style='border-right: 1px solid #000; border-left: 1px solid #000;'></td>";
+                }
+            }
+            echo "</tr>";
+          }
           ?>
-          </tbody>
+        </tbody>
       </table>        
     </div>
 </div>

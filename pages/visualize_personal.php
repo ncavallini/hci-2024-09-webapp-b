@@ -1,12 +1,4 @@
 <?php
-require_once __DIR__ . "/../utils/init.php";
-
-// Ensure the user is logged in
-if (!Auth::is_logged_in()) {
-    header("Location: ../../index.php?page=login");
-    die;
-}
-
 try {
     $dbconnection = DBConnection::get_connection();
     $user_id = Auth::user()['user_id']; // Get the logged-in user's ID
@@ -29,16 +21,28 @@ try {
             at.group_id = 0 AND at.user_id = ?
             AND (t.is_completed = 0 OR t.is_completed IS NULL)
         ORDER BY 
-            t.is_completed ASC, at.due_date ASC";
+            t.is_completed ASC, estimated_load DESC,at.due_date ASC";
     $stmt = $dbconnection->prepare($sql);
     $stmt->execute([$user_id]);
 
     $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Calculate total mental load for these tasks
-    $total_load = array_sum(array_map(function ($task) {
-        return !$task['is_completed'] ? $task['estimated_load'] : 0;
-    }, $tasks));
+    // Separate overdue and non-overdue tasks
+    $now = new DateTime();
+    $overdueTasks = [];
+    $nonOverdueTasks = [];
+
+    foreach ($tasks as $task) {
+        $dueDate = new DateTime($task['due_date']);
+        if ($dueDate < $now) {
+            $overdueTasks[] = $task;
+        } else {
+            $nonOverdueTasks[] = $task;
+        }
+    }
+
+    // Calculate total mental load for non-overdue tasks
+    $total_load = array_sum(array_column($nonOverdueTasks, 'estimated_load'));
 
     // Fetch and update maximum load for the user
     $sql = "SELECT max_load FROM users WHERE user_id = ?";
@@ -60,16 +64,14 @@ try {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
+
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Tasks</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
+   
+
     <div class="container mt-5">
         <h1 class="mb-4">Personal Tasks</h1>
 
@@ -88,44 +90,72 @@ try {
                     <?php echo round($load_percentage); ?>%
                 </div>
             </div>
-            <p class="mt-2">Personal Tasks' Load: <?php echo $total_load; ?> / Maximum Load: <?php echo $max_load; ?></p>
+            <p class="mt-2">Personal Tasks Load: <?php echo $total_load; ?> / Maximum Load: <?php echo $max_load; ?></p>
         </div>
 
         <!-- Buttons for List and Pie Chart Views -->
         <div class="d-flex justify-content-between mb-3">
             <button id="listViewButton" class="btn btn-primary" onclick="showView('listView')">List View</button>
             <button id="pieChartViewButton" class="btn btn-secondary" onclick="showView('pieChartView')">Pie Chart View</button>
+            <button id="bubbleChartViewButton" class="btn btn-secondary" onclick="showView('bubbleChartView')">Bubble Chart View</button>
         </div>
 
-        <!-- List View -->
-        <div id="listView" class="d-flex flex-column gap-3">
-            <?php if (!empty($tasks)): ?>
-                <?php foreach ($tasks as $task): ?>
-                    <div 
-                        class="task-item d-flex justify-content-between align-items-center p-3 border rounded"
+        <div id="listView" class="d-flex flex-column gap-3 overflow-auto" style="max-height: 80vh;">
+            <h3>Non-Overdue Tasks</h3>
+            <?php if (!empty($nonOverdueTasks)): ?>
+                <?php foreach ($nonOverdueTasks as $task): ?>
+                    <div class="task-item d-flex justify-content-between align-items-center p-3 border rounded flex-wrap" 
+                        style="cursor: pointer;" 
                         onclick="showTaskDetails(<?php echo htmlspecialchars(json_encode($task), ENT_QUOTES); ?>)">
-
-                        <div>
+                        <div class="flex-grow-1 me-3">
                             <h5 class="mb-1"><?php echo htmlspecialchars($task['title']); ?></h5>
                             <p class="mb-1 text-muted"><?php echo htmlspecialchars($task['description']); ?></p>
                             <small class="text-muted">
-                                <strong>Due: </strong> <?php echo (new DateTimeImmutable($task['due_date']))->format('Y-m-d H:i:s'); ?>
+                                <strong>Due: </strong> <?php echo (new DateTime($task['due_date']))->format('Y-m-d H:i:s'); ?>
                             </small>
                         </div>
                         <div>
-                            <span class="badge badge-primary badge-pill">Load: <?php echo htmlspecialchars($task['estimated_load']); ?></span>
-                            
+                            <span class="badge bg-primary">Load: <?php echo htmlspecialchars($task['estimated_load']); ?></span>
                         </div>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
-                <p class="lead text-muted">No personal tasks found.</p>
+                <p class="lead text-muted">No non-overdue tasks found.</p>
+            <?php endif; ?>
+
+            <h3>Overdue Tasks</h3>
+            <?php if (!empty($overdueTasks)): ?>
+                <?php foreach ($overdueTasks as $task): ?>
+                    <div class="task-item d-flex justify-content-between align-items-center p-3 border rounded flex-wrap" 
+                        style="cursor: pointer; background-color: lightcoral;" 
+                        onclick="showTaskDetails(<?php echo htmlspecialchars(json_encode($task), ENT_QUOTES); ?>)">
+                        <div class="flex-grow-1 me-3">
+                            <h5 class="mb-1"><?php echo htmlspecialchars($task['title']); ?></h5>
+                            <p class="mb-1 text-muted"><?php echo htmlspecialchars($task['description']); ?></p>
+                            <small class="text-muted">
+                                <strong>Due: </strong> <?php echo (new DateTime($task['due_date']))->format('Y-m-d H:i:s'); ?>
+                            </small>
+                        </div>
+                        <div>
+                            <span class="badge bg-primary">Load: <?php echo htmlspecialchars($task['estimated_load']); ?></span>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p class="lead text-muted">No overdue tasks found.</p>
             <?php endif; ?>
         </div>
 
+
+
+
         <!-- Pie Chart View -->
-        <div id="pieChartView" style="display: none;">
+        <div id="pieChartView" class="hidden" style="display: none;">
             <canvas id="pieChart" width="400" height="400"></canvas>
+        </div>
+
+        <div id="bubbleChartView" class="hidden" style="display: none">
+            <canvas id="bubbleChart" width="400" height="400"></canvas>
         </div>
     </div>
 
@@ -150,6 +180,13 @@ try {
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<!-- Include jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<!-- Bootstrap JS Bundle includes Popper.js -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 
 
     <script>
@@ -157,31 +194,130 @@ try {
         let pieChart;
 
         function showView(viewId) {
-            const listView = document.getElementById('listView');
-            const pieChartView = document.getElementById('pieChartView');
-            const listViewButton = document.getElementById('listViewButton');
-            const pieChartViewButton = document.getElementById('pieChartViewButton');
+    const listView = document.getElementById('listView');
+    const pieChartView = document.getElementById('pieChartView');
+    const bubbleChartView = document.getElementById('bubbleChartView');
+    const listViewButton = document.getElementById('listViewButton');
+    const pieChartViewButton = document.getElementById('pieChartViewButton');
+    const bubbleChartViewButton = document.getElementById('bubbleChartViewButton');
 
-            // Update the display of views
-            listView.style.display = viewId === 'listView' ? 'block' : 'none';
-            pieChartView.style.display = viewId === 'pieChartView' ? 'block' : 'none';
+    listView.classList.add('hidden');
+    pieChartView.classList.add('hidden');
+    bubbleChartView.classList.add('hidden');
 
-            // Update button styles
-            if (viewId === 'listView') {
-                listViewButton.classList.add('btn-primary');
-                listViewButton.classList.remove('btn-secondary');
-                pieChartViewButton.classList.add('btn-secondary');
-                pieChartViewButton.classList.remove('btn-primary');
-            } else if (viewId === 'pieChartView') {
-                pieChartViewButton.classList.add('btn-primary');
-                pieChartViewButton.classList.remove('btn-secondary');
-                listViewButton.classList.add('btn-secondary');
-                listViewButton.classList.remove('btn-primary');
-            }
+    listViewButton.classList.remove('btn-primary');
+    listViewButton.classList.add('btn-secondary');
+    pieChartViewButton.classList.remove('btn-primary');
+    pieChartViewButton.classList.add('btn-secondary');
+    bubbleChartViewButton.classList.remove('btn-primary');
+    bubbleChartViewButton.classList.add('btn-secondary');
 
-            // Show the pie chart when switching to pieChartView
-            if (viewId === 'pieChartView') showPieChart();
+    if (viewId === 'listView') {
+        bubbleChartView.classList.remove('visible');
+        bubbleChartView.classList.add('hidden');
+        listView.classList.remove('hidden');
+        pieChartView.classList.remove('visible');
+        pieChartView.classList.add('hidden');
+        listViewButton.classList.add('btn-primary');
+        listViewButton.classList.remove('btn-secondary');
+    } else if (viewId === 'pieChartView') {
+        bubbleChartView.classList.remove('visible');
+        bubbleChartView.classList.add('hidden');
+        pieChartView.classList.remove('hidden');
+        pieChartViewButton.classList.add('btn-primary');
+        pieChartView.classList.add('visible');
+        pieChartViewButton.classList.remove('btn-secondary');
+        showPieChart();
+    } else if (viewId === 'bubbleChartView') {
+        pieChartView.classList.remove('visible');
+        pieChartView.classList.add('hidden');
+        bubbleChartView.classList.remove('hidden');
+        bubbleChartView.classList.add('visible');
+        bubbleChartViewButton.classList.add('btn-primary');
+        bubbleChartViewButton.classList.remove('btn-secondary');
+        showBubbleChart();
+    }
+}
+
+
+
+        function showBubbleChart() {
+    const ctx = document.getElementById('bubbleChart').getContext('2d');
+
+    // Map the tasks data to the bubble chart data format
+    const bubbleDataPoints = tasks.map(task => {
+        // Convert due_date to a Date object or a string in ISO format
+        const dueDate = new Date(task.due_date);
+        if (isNaN(dueDate)) {
+            console.error(`Invalid date for task "${task.title}": ${task.due_date}`);
+            return null; // Exclude invalid data points
         }
+
+        return {
+            x: dueDate, // Use the Date object directly
+            y: Number(task.estimated_load),
+            r: Number(task.estimated_load) * 2, // Adjust as needed
+            taskTitle: task.title,
+        };
+    }).filter(dataPoint => dataPoint !== null); // Remove any null entries due to invalid dates
+
+    // Log the data to verify the structure
+    console.log('Bubble Data Points:', bubbleDataPoints);
+
+    const bubbleData = {
+        datasets: [{
+            label: 'Personal Tasks',
+            data: bubbleDataPoints,
+            backgroundColor: '#36A2EB'
+        }]
+    };
+
+    // Destroy previous chart instance if it exists
+    if (bubbleChart && typeof bubbleChart.destroy === 'function') {
+        bubbleChart.destroy();
+    }
+
+    try {
+        bubbleChart = new Chart(ctx, {
+            type: 'bubble',
+            data: bubbleData,
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            tooltipFormat: 'MMM d, yyyy',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Due Date',
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Estimated Load',
+                        },
+                    },
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const dataPoint = context.raw;
+                                return `${dataPoint.taskTitle}: Load ${dataPoint.y}`;
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    } catch (error) {
+        console.error('Error creating bubbleChart:', error);
+    }
+}
+
 
 
         function showTaskDetails(task) {
@@ -255,6 +391,13 @@ try {
             background-color: #f8f9fa;
             cursor: pointer;
         }
+        .hidden {
+            display: none !important;
+        }
+
+        .visible {
+            display: block !important;
+        }
+
     </style>
-</body>
-</html>
+
