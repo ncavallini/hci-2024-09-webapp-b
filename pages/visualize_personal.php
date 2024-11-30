@@ -66,13 +66,7 @@ try {
 
 
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Tasks</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-   
-
-    <div class="container mt-5">
+<div class="container mt-5">
         <h1 class="mb-4">Personal Tasks</h1>
 
         <!-- Mental Load Bar -->
@@ -93,70 +87,26 @@ try {
             <p class="mt-2">Personal Tasks Load: <?php echo $total_load; ?> / Maximum Load: <?php echo $max_load; ?></p>
         </div>
 
-        <!-- Buttons for List and Pie Chart Views -->
-        <div class="d-flex justify-content-between mb-3">
-            <button id="listViewButton" class="btn btn-primary" onclick="showView('listView')">List View</button>
-            <button id="pieChartViewButton" class="btn btn-secondary" onclick="showView('pieChartView')">Pie Chart View</button>
-            <button id="bubbleChartViewButton" class="btn btn-secondary" onclick="showView('bubbleChartView')">Bubble Chart View</button>
-        </div>
+    <!-- Buttons Row -->
+    <div class="d-flex justify-content-between mb-3">
+            <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
+            <button id="radarChartViewButton" class="btn btn-secondary" onclick="showView('radarChartView')">Radar Chart View</button>
+            <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
+    </div>
 
-        <div id="listView" class="d-flex flex-column gap-3 overflow-auto" style="max-height: 80vh;">
-            <h3>Non-Overdue Tasks</h3>
-            <?php if (!empty($nonOverdueTasks)): ?>
-                <?php foreach ($nonOverdueTasks as $task): ?>
-                    <div class="task-item d-flex justify-content-between align-items-center p-3 border rounded flex-wrap" 
-                        style="cursor: pointer;" 
-                        onclick="showTaskDetails(<?php echo htmlspecialchars(json_encode($task), ENT_QUOTES); ?>)">
-                        <div class="flex-grow-1 me-3">
-                            <h5 class="mb-1"><?php echo htmlspecialchars($task['title']); ?></h5>
-                            <p class="mb-1 text-muted"><?php echo htmlspecialchars($task['description']); ?></p>
-                            <small class="text-muted">
-                                <strong>Due: </strong> <?php echo (new DateTime($task['due_date']))->format('Y-m-d H:i:s'); ?>
-                            </small>
-                        </div>
-                        <div>
-                            <span class="badge bg-primary">Load: <?php echo htmlspecialchars($task['estimated_load']); ?></span>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p class="lead text-muted">No non-overdue tasks found.</p>
-            <?php endif; ?>
+    <!-- Heatmap View -->
+    <div id="heatmapView" style="display: none;">
+        <canvas id="heatmapChart" width="400" height="400"></canvas>
+    </div>
 
-            <h3>Overdue Tasks</h3>
-            <?php if (!empty($overdueTasks)): ?>
-                <?php foreach ($overdueTasks as $task): ?>
-                    <div class="task-item d-flex justify-content-between align-items-center p-3 border rounded flex-wrap" 
-                        style="cursor: pointer; background-color: lightcoral;" 
-                        onclick="showTaskDetails(<?php echo htmlspecialchars(json_encode($task), ENT_QUOTES); ?>)">
-                        <div class="flex-grow-1 me-3">
-                            <h5 class="mb-1"><?php echo htmlspecialchars($task['title']); ?></h5>
-                            <p class="mb-1 text-muted"><?php echo htmlspecialchars($task['description']); ?></p>
-                            <small class="text-muted">
-                                <strong>Due: </strong> <?php echo (new DateTime($task['due_date']))->format('Y-m-d H:i:s'); ?>
-                            </small>
-                        </div>
-                        <div>
-                            <span class="badge bg-primary">Load: <?php echo htmlspecialchars($task['estimated_load']); ?></span>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p class="lead text-muted">No overdue tasks found.</p>
-            <?php endif; ?>
-        </div>
+    <!-- Radar Chart View -->
+    <div id="radarChartView" style="display: none;">
+        <canvas id="radarChart" width="400" height="400"></canvas>
+    </div>
 
-
-
-
-        <!-- Pie Chart View -->
-        <div id="pieChartView" class="hidden" style="display: none;">
-            <canvas id="pieChart" width="400" height="400"></canvas>
-        </div>
-
-        <div id="bubbleChartView" class="hidden" style="display: none">
-            <canvas id="bubbleChart" width="400" height="400"></canvas>
-        </div>
+    <!-- Scatter Chart View -->
+    <div id="scatterChartView" style="display: none;">
+        <canvas id="scatterChart" width="400" height="400"></canvas>
     </div>
 
     <!-- Task Details Modal -->
@@ -164,7 +114,7 @@ try {
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="taskDetailsModalLabel">Task Details</h5>
+                    <h5 class="modal-title">Task Details</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -180,118 +130,381 @@ try {
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-<!-- Include jQuery and Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<!-- Bootstrap JS Bundle includes Popper.js -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</div>
 
 
-    <script>
-        const tasks = <?php echo json_encode($tasks); ?>;
-        let pieChart;
 
-        function showView(viewId) {
-    const listView = document.getElementById('listView');
-    const pieChartView = document.getElementById('pieChartView');
-    const bubbleChartView = document.getElementById('bubbleChartView');
-    const listViewButton = document.getElementById('listViewButton');
-    const pieChartViewButton = document.getElementById('pieChartViewButton');
-    const bubbleChartViewButton = document.getElementById('bubbleChartViewButton');
+<script>
+    let currentMode = 'tasks'; // Default to 'tasks'
+    let currentView = 'heatmapView'; // Default to 'heatmapView'
+    let heatmapChart;
+    let radarChart;
+    let scatterChart;
 
-    listView.classList.add('hidden');
-    pieChartView.classList.add('hidden');
-    bubbleChartView.classList.add('hidden');
+    function showView(viewId) {
+        // Hide all views
+        document.getElementById('heatmapView').style.display = 'none';
+        document.getElementById('radarChartView').style.display = 'none';
+        document.getElementById('scatterChartView').style.display = 'none';
 
-    listViewButton.classList.remove('btn-primary');
-    listViewButton.classList.add('btn-secondary');
-    pieChartViewButton.classList.remove('btn-primary');
-    pieChartViewButton.classList.add('btn-secondary');
-    bubbleChartViewButton.classList.remove('btn-primary');
-    bubbleChartViewButton.classList.add('btn-secondary');
+        // Remove active class from buttons
+        document.getElementById('heatmapViewButton').classList.remove('btn-primary');
+        document.getElementById('heatmapViewButton').classList.add('btn-secondary');
+        document.getElementById('radarChartViewButton').classList.remove('btn-primary');
+        document.getElementById('radarChartViewButton').classList.add('btn-secondary');
+        document.getElementById('scatterChartViewButton').classList.remove('btn-primary');
+        document.getElementById('scatterChartViewButton').classList.add('btn-secondary');
 
-    if (viewId === 'listView') {
-        bubbleChartView.classList.remove('visible');
-        bubbleChartView.classList.add('hidden');
-        listView.classList.remove('hidden');
-        pieChartView.classList.remove('visible');
-        pieChartView.classList.add('hidden');
-        listViewButton.classList.add('btn-primary');
-        listViewButton.classList.remove('btn-secondary');
-    } else if (viewId === 'pieChartView') {
-        bubbleChartView.classList.remove('visible');
-        bubbleChartView.classList.add('hidden');
-        pieChartView.classList.remove('hidden');
-        pieChartViewButton.classList.add('btn-primary');
-        pieChartView.classList.add('visible');
-        pieChartViewButton.classList.remove('btn-secondary');
-        showPieChart();
-    } else if (viewId === 'bubbleChartView') {
-        pieChartView.classList.remove('visible');
-        pieChartView.classList.add('hidden');
-        bubbleChartView.classList.remove('hidden');
-        bubbleChartView.classList.add('visible');
-        bubbleChartViewButton.classList.add('btn-primary');
-        bubbleChartViewButton.classList.remove('btn-secondary');
-        showBubbleChart();
+        // Show selected view
+        document.getElementById(viewId).style.display = 'block';
+        document.getElementById(`${viewId}Button`).classList.add('btn-primary');
+        document.getElementById(`${viewId}Button`).classList.remove('btn-secondary');
+
+        // Update current view
+        currentView = viewId;
+
+        // Call appropriate function
+        if (viewId === 'heatmapView') {
+            showHeatmapView(currentMode);
+        } else if (viewId === 'radarChartView') {
+            showRadarChartView(currentMode);
+        } else if (viewId === 'scatterChartView') {
+            showScatterChartView(currentMode);
+        }
     }
-}
 
+    function toggleTaskGroup(mode) {
+        currentMode = mode;
 
-
-        function showBubbleChart() {
-    const ctx = document.getElementById('bubbleChart').getContext('2d');
-
-    // Map the tasks data to the bubble chart data format
-    const bubbleDataPoints = tasks.map(task => {
-        // Convert due_date to a Date object or a string in ISO format
-        const dueDate = new Date(task.due_date);
-        if (isNaN(dueDate)) {
-            console.error(`Invalid date for task "${task.title}": ${task.due_date}`);
-            return null; // Exclude invalid data points
+        if (currentView === 'heatmapView') {
+            showHeatmapView(mode);
+        } else if (currentView === 'radarChartView') {
+            showRadarChartView(mode);
+        } else if (currentView === 'scatterChartView') {
+            showScatterChartView(mode);
         }
 
-        return {
-            x: dueDate, // Use the Date object directly
-            y: Number(task.estimated_load),
-            r: Number(task.estimated_load) * 2, // Adjust as needed
-            taskTitle: task.title,
-        };
-    }).filter(dataPoint => dataPoint !== null); // Remove any null entries due to invalid dates
-
-    // Log the data to verify the structure
-    console.log('Bubble Data Points:', bubbleDataPoints);
-
-    const bubbleData = {
-        datasets: [{
-            label: 'Personal Tasks',
-            data: bubbleDataPoints,
-            backgroundColor: '#36A2EB'
-        }]
-    };
-
-    // Destroy previous chart instance if it exists
-    if (bubbleChart && typeof bubbleChart.destroy === 'function') {
-        bubbleChart.destroy();
+        // Update button styles
+        document.getElementById("taskListButton").classList.toggle("btn-primary", mode === "tasks");
+        document.getElementById("taskListButton").classList.toggle("btn-secondary", mode !== "tasks");
+        document.getElementById("groupListButton").classList.toggle("btn-primary", mode === "groups");
+        document.getElementById("groupListButton").classList.toggle("btn-secondary", mode !== "groups");
     }
 
-    try {
-        bubbleChart = new Chart(ctx, {
+    function showHeatmapView(mode) {
+        const tasks = <?php echo json_encode($tasks); ?>;
+        const canvas = document.getElementById("heatmapChart");
+        const ctx = canvas.getContext("2d");
+
+        // Filter tasks to exclude completed ones
+        const activeTasks = tasks.filter(task => parseInt(task.is_completed, 10) === 0);
+
+        // Assign group colors dynamically
+        const colorPalette = [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+            '#FF9F40', '#E7E9ED', '#B39DDB', '#9CCC65', '#FF7043',
+        ];
+        const groupColorMap = {};
+        let colorIndex = 0;
+
+        // Prepare data for heatmap
+        const dataMatrix = [];
+        const xLabelsSet = new Set(); // Use Set to ensure uniqueness
+        const yLabelsSet = new Set();
+
+        // Process tasks to populate labels and matrix
+        activeTasks.forEach(task => {
+            const dueDate = new Date(task.due_date).toLocaleDateString();
+            const yValue = mode === 'tasks' ? task.title : task.group_name || 'Personal';
+            const groupName = task.group_name || 'Personal';
+
+            xLabelsSet.add(dueDate);
+            yLabelsSet.add(yValue);
+
+            // Assign color to group if not already assigned
+            if (!groupColorMap[groupName]) {
+                groupColorMap[groupName] = colorPalette[colorIndex % colorPalette.length];
+                colorIndex++;
+            }
+
+            // Map task to correct cell
+            dataMatrix.push({
+                xLabel: dueDate,
+                yLabel: yValue,
+                v: task.estimated_load,
+                task: task,
+                groupColor: groupColorMap[groupName],
+            });
+        });
+
+        // Convert Sets to sorted arrays
+        const xLabels = Array.from(xLabelsSet).sort((a, b) => new Date(a) - new Date(b)); // Sort due dates chronologically
+        const yLabels = Array.from(yLabelsSet); // No need to sort task titles/groups unless desired
+
+        // Map dataMatrix to correct indices
+        const matrixData = dataMatrix.map(data => ({
+            x: xLabels.indexOf(data.xLabel),
+            y: yLabels.indexOf(data.yLabel),
+            v: data.v,
+            task: data.task,
+            groupColor: data.groupColor,
+        }));
+
+        // Compute maximum estimated load for alpha scaling
+        const maxLoad = Math.max(...matrixData.map(d => d.v));
+
+        // Dynamically calculate canvas size
+        const cellSize = 40; // Fixed size for each cell (adjust as needed)
+        const canvasWidth = cellSize * xLabels.length + 200; // Add extra padding for labels
+        const canvasHeight = cellSize * yLabels.length + 100; // Add extra padding for labels
+
+        // Set canvas size
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+
+        // Helper function to convert hex color to RGB
+        function hexToRgb(hex) {
+            hex = hex.replace('#', '');
+            const bigint = parseInt(hex, 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return [r, g, b];
+        }
+
+        // Destroy previous chart if it exists
+        if (heatmapChart) heatmapChart.destroy();
+
+        // Create the heatmap chart
+        heatmapChart = new Chart(ctx, {
+            type: 'matrix',
+            data: {
+                datasets: [{
+                    label: 'Task Heatmap',
+                    data: matrixData,
+                    backgroundColor(context) {
+                        const dataPoint = context.dataset.data[context.dataIndex];
+                        const [r, g, b] = hexToRgb(dataPoint.groupColor);
+                        const minAlpha = 0.2; // Minimum alpha to ensure visibility
+                        const alpha = minAlpha + (dataPoint.v / maxLoad) * (1 - minAlpha);
+                        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                    },
+                    borderWidth: 1,
+                    borderColor: 'white',
+                    width: cellSize - 5, // Adjust cell width
+                    height: cellSize - 5, // Adjust cell height
+                }]
+            },
+            options: {
+                maintainAspectRatio: false, // Allow chart to resize based on container
+                scales: {
+                    x: {
+                        type: 'category',
+                        labels: xLabels,
+                        title: {
+                            display: true,
+                            text: 'Due Dates',
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 90,
+                            minRotation: 45,
+                        },
+                    },
+                    y: {
+                        type: 'category',
+                        labels: yLabels,
+                        title: {
+                            display: true,
+                            text: mode === 'tasks' ? 'Tasks' : 'Groups',
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            padding: 10,
+                        },
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            generateLabels(chart) {
+                                return Object.keys(groupColorMap).map(groupName => ({
+                                    text: groupName,
+                                    fillStyle: groupColorMap[groupName],
+                                    strokeStyle: groupColorMap[groupName],
+                                    hidden: false,
+                                    lineWidth: 0,
+                                }));
+                            },
+                        },
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: () => '',
+                            label: context => {
+                                const dataPoint = context.dataset.data[context.dataIndex];
+                                const taskName = yLabels[dataPoint.y];
+                                const dueDate = xLabels[dataPoint.x];
+                                const groupName = dataPoint.task.group_name || 'Personal';
+                                return `${taskName} (Due: ${dueDate}, Group: ${groupName}, Load: ${dataPoint.v})`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function showRadarChartView(mode) {
+        const tasks = <?php echo json_encode($tasks); ?>;
+        const ctx = document.getElementById("radarChart").getContext("2d");
+
+        // Destroy previous chart if it exists
+        if (radarChart) radarChart.destroy();
+
+        // Prepare data for radar chart by listing individual tasks
+        // To prevent cluttering, we can limit the number of tasks displayed
+        const maxTasksToDisplay = 12; // Adjust as needed based on readability
+        let taskData;
+
+        if (mode === 'groups') {
+            // Filter tasks by groups and flatten them into a single array
+            taskData = tasks.filter(task => task.group_name && task.group_name !== 'Personal');
+        } else {
+            // Personal tasks or all tasks
+            taskData = tasks;
+        }
+
+        // Sort tasks by estimated load in descending order and take the top tasks
+        taskData = taskData.sort((a, b) => b.estimated_load - a.estimated_load).slice(0, maxTasksToDisplay);
+
+        // Prepare labels and data
+        const labels = taskData.map(task => task.title || 'Unnamed Task');
+        const dataValues = taskData.map(task => parseFloat(task.estimated_load));
+
+        // Create the radar chart
+        radarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Estimated Load per Task',
+                    data: dataValues,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)', // Light teal
+                    borderColor: 'rgba(75, 192, 192, 1)', // Darker teal
+                    borderWidth: 1,
+                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(75, 192, 192, 1)',
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        pointLabels: {
+                            font: {
+                                size: 14,
+                            },
+                        },
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const task = taskData[context.dataIndex];
+                                return `${task.title}: Estimated Load ${task.estimated_load}`;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false,
+                    }
+                }
+            }
+        });
+    }
+
+
+    function showScatterChartView(mode) {
+        const tasks = <?php echo json_encode($tasks); ?>;
+        const ctx = document.getElementById("scatterChart").getContext("2d");
+
+        // Destroy previous chart if it exists
+        if (scatterChart) scatterChart.destroy();
+
+        // Create a color map for groups
+        const colorPalette = [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+            '#FF9F40', '#E7E9ED', '#B39DDB', '#9CCC65', '#FF7043'
+        ];
+        const overdueColor = '#FF0000'; // Color for overdue tasks
+        const groupColorMap = {};
+        let colorIndex = 0;
+
+        // Assign unique colors to groups
+        tasks.forEach(task => {
+            const groupName = task.group_name || 'Personal';
+            if (!groupColorMap[groupName]) {
+                groupColorMap[groupName] = colorPalette[colorIndex % colorPalette.length];
+                colorIndex++;
+            }
+        });
+
+        // Get the current date
+        const now = new Date();
+
+        // Prepare data for scatter chart
+        const scatterData = tasks.map(task => {
+            const dueDate = new Date(task.due_date);
+            const isOverdue = dueDate < now;
+
+            return {
+                x: mode === 'tasks' ? dueDate : task.group_name,
+                y: task.estimated_load,
+                r: task.estimated_load * 2, // Adjust size as needed
+                groupName: task.group_name || 'Personal',
+                backgroundColor: isOverdue ? overdueColor : groupColorMap[task.group_name || 'Personal'],
+                isOverdue: isOverdue, // Include overdue flag for tooltips
+            };
+        });
+
+        // Prepare legend items for groups and overdue tasks
+        const legendItems = Object.entries(groupColorMap).map(([groupName, color]) => ({
+            text: groupName,
+            fillStyle: color,
+        }));
+        legendItems.push({
+            text: 'Overdue Tasks',
+            fillStyle: overdueColor,
+        });
+
+        // Create the scatter chart
+        scatterChart = new Chart(ctx, {
             type: 'bubble',
-            data: bubbleData,
+            data: {
+                datasets: [{
+                    label: mode === 'tasks' ? 'Tasks' : 'Groups',
+                    data: scatterData,
+                    backgroundColor: scatterData.map(point => point.backgroundColor),
+                }]
+            },
             options: {
                 scales: {
                     x: {
-                        type: 'time',
+                        type: mode === 'tasks' ? 'time' : 'category',
                         time: {
                             unit: 'day',
                             tooltipFormat: 'MMM d, yyyy',
                         },
                         title: {
                             display: true,
-                            text: 'Due Date',
+                            text: mode === 'tasks' ? 'Due Date' : 'Group Name',
                         },
                     },
                     y: {
@@ -302,102 +515,119 @@ try {
                     },
                 },
                 plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            generateLabels: function() {
+                                return legendItems;
+                            }
+                        }
+                    },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
                                 const dataPoint = context.raw;
-                                return `${dataPoint.taskTitle}: Load ${dataPoint.y}`;
+                                const overdueText = dataPoint.isOverdue ? ' (Overdue)' : '';
+                                return `${dataPoint.groupName}: Load ${dataPoint.y}${overdueText}`;
                             },
                         },
                     },
                 },
             },
         });
-    } catch (error) {
-        console.error('Error creating bubbleChart:', error);
     }
-}
 
+    function updateProgressBar(loadPercentage) {
+        const loadProgressBar = document.querySelector("#loadProgressBar");
 
-
-        function showTaskDetails(task) {
-            document.getElementById('taskTitle').textContent = task.title;
-            document.getElementById('taskDescription').textContent = task.description;
-            document.getElementById('taskLocation').textContent = task.location;
-            document.getElementById('taskDueDate').textContent = new Date(task.due_date).toLocaleString();
-            document.getElementById('taskEstimatedLoad').textContent = task.estimated_load;
-            new bootstrap.Modal(document.getElementById('taskDetailsModal')).show();
+        if (!loadProgressBar) {
+            console.error("Progress bar element not found!");
+            return;
         }
 
-        function showPieChart() {
-            const ctx = document.getElementById('pieChart').getContext('2d');
-            const pieData = {
-                labels: tasks.map(task => task.title),
-                datasets: [{
-                    data: tasks.map(task => task.estimated_load),
-                    backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#dc3545', '#6610f2']
-                }]
-            };
+        // Set the progress bar width and aria attributes
+        loadProgressBar.style.width = `${loadPercentage}%`;
+        loadProgressBar.setAttribute("aria-valuenow", loadPercentage);
 
-            if (pieChart) pieChart.destroy();
-            pieChart = new Chart(ctx, {
-                type: 'pie',
-                data: pieData,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'top' }
-                    }
-                }
-            });
+        // Change the progress bar's background color based on the percentage
+        if (loadPercentage >= 80) {
+            loadProgressBar.style.backgroundColor = "darkred";
+        } else if (loadPercentage >= 50) {
+            loadProgressBar.style.backgroundColor = "orange";
+        } else {
+            loadProgressBar.style.backgroundColor = "lightgreen";
         }
+    }
 
-        function updateProgressBar(loadPercentage) {
-            const progressBar = document.querySelector(".progress-bar");
+    document.addEventListener("DOMContentLoaded", function () {
+        const loadPercentage = <?php echo $load_percentage; ?>;
+        updateProgressBar(loadPercentage);
 
-            if (!progressBar) {
-                console.error("Progress bar element not found!");
-                return;
-            }
+        // Initialize default view and mode
+        showView('heatmapView');
+        toggleTaskGroup('tasks');
 
-            // Set the progress bar width and aria attributes
-            progressBar.style.width = `${loadPercentage}%`;
-            progressBar.setAttribute("aria-valuenow", loadPercentage);
+        // Event listeners for switching between views
+        document.getElementById('heatmapViewButton').addEventListener('click', () => showView('heatmapView'));
+        document.getElementById('radarChartViewButton').addEventListener('click', () => showView('radarChartView'));
+        document.getElementById('scatterChartViewButton').addEventListener('click', () => showView('scatterChartView'));
 
-            // Change the progress bar's background color based on the percentage
-            if (loadPercentage >= 80) {
-                progressBar.style.backgroundColor = "darkred"; // High load
-            } else if (loadPercentage >= 50) {
-                progressBar.style.backgroundColor = "orange"; // Moderate load
-            } else {
-                progressBar.style.backgroundColor = "lightgreen"; // Low load
-            }
-        }
-
-
-        document.addEventListener('DOMContentLoaded', () => {
-            showView('listView');
-
-            showView('listView');
-
-            // Update the progress bar with the current load percentage
-            const loadPercentage = <?php echo round($load_percentage); ?>;
-            updateProgressBar(loadPercentage);
+        // Event listeners for toggling tasks and groups
+        document.getElementById('taskListButton').addEventListener('click', () => {
+            toggleTaskGroup('tasks');
         });
-    </script>
 
-    <style>
-        .task-item:hover {
-            background-color: #f8f9fa;
-            cursor: pointer;
+        document.getElementById('groupListButton').addEventListener('click', () => {
+            toggleTaskGroup('groups');
+        });
+    });
+
+    function showTaskDetails(task) {
+        document.getElementById('taskTitle').textContent = task.title;
+        document.getElementById('taskDescription').textContent = task.description;
+        document.getElementById('taskLocation').textContent = task.location;
+        document.getElementById('taskDueDate').textContent = new Date(task.due_date).toLocaleString();
+        document.getElementById('taskEstimatedLoad').textContent = task.estimated_load;
+        new bootstrap.Modal(document.getElementById('taskDetailsModal')).show();
+    }
+</script>
+
+<style>
+    .hidden {
+        display: none !important;
+    }
+    .visible {
+        display: block !important;
+    }
+
+    .text-primary {
+        color: #007bff !important;
+    }
+
+    .bg-success {
+        background-color: #28a745 !important;
+        color: white;
+    }
+
+    .btn-uniform {
+        min-width: 120px; /* Set a uniform minimum width */
+        text-align: center; /* Center align text */
+    }
+
+    @media (max-width: 576px) {
+        .btn-uniform {
+            min-width: 100px; /* Adjust size for smaller screens */
         }
-        .hidden {
-            display: none !important;
-        }
+    }
 
-        .visible {
-            display: block !important;
-        }
+    #heatmapView {
+        overflow: auto;
+        max-height: 100%; /* Adjust height as necessary */
+    }
 
-    </style>
-
+    #heatmapChart {
+        /* Optional: Ensure the canvas is large enough */
+        width: 1000px; /* Adjust width as necessary */
+        height: 1000px; /* Adjust height as necessary */
+    }
+</style>
