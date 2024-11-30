@@ -71,7 +71,8 @@ try {
 
         <!-- Mental Load Bar -->
         <div class="mb-4">
-            <h5>Mental Load from Personal tasks</h5>
+            <h5>Mental Load from Personal tasks
+            </h5>
             <div class="progress">
                 <div 
                     class="progress-bar" 
@@ -591,6 +592,7 @@ try {
         new bootstrap.Modal(document.getElementById('taskDetailsModal')).show();
     }
 </script>
+
 
 <style>
     .hidden {
