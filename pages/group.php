@@ -47,9 +47,9 @@ if (!$group) {
                 &nbsp;&nbsp;<?php echo ($member['first_name'] . " " . $member['last_name']); ?>
                 <div class="inline-progress">
                     &nbsp; &nbsp;
-        <div class="progress" style="width: 200px;">
-            <div class="progress-bar" role="progressbar" style="width: <?php echo UserUtils::get_total_load($member['username'])*100/UserUtils::get_max_load() ?>%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
+        <!--<div class="progress" style="width: 200px;">
+            <div class="progress-bar" role="progressbar" style="width: <//?php echo UserUtils::get_total_load($member['username'])*100/UserUtils::get_max_load() ?>%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>-->
     </div>
 
             </button>
@@ -104,14 +104,23 @@ if (!$group) {
                                     </a>
                                 </td>
                                 <?php if ($is_current_user): ?>
-                                <td>
+                                <!--<td>
                                 
                                     <a class="btn btn-sm btn-outline-primary" 
                                        href="index.php?page=survey&task_id=<?php echo $task['group_task_id']; ?>&group=<?php echo $group_id; ?>">
                                         <i class="fa fa-check-square-o"></i>
                                     </a>
                                 
-                                </td>
+                                </td>-->
+                                <?php
+                                       
+                                    if($task['is_completed'] && !UserUtils::does_survey_exist($task['group_task_id'], true)){
+                                        echo "<td><a class='btn btn-sm btn-outline-primary' href='index.php?page=survey&task_id=".$task['group_task_id']."&group=".$group_id."'><i class='fa fa-check-square-o'></i></a></td>";
+                                    }
+                                    else{
+                                        echo "<td></td>";
+                                    }
+                                ?>
                                 <?php endif; ?>
                                 <td>
                                     <a class="btn btn-sm btn-outline-danger" 
@@ -157,10 +166,12 @@ if (!$group) {
 
     setAccordionStatusLink.addEventListener("click", () => {
         accordions.forEach(accordion => {
-            accordion.classList.toggle("show");
-            const id = accordion.id;
-            const button = document.querySelector(`button[data-bs-target="#${id}"]`);
-            button.classList.toggle("collapsed");
+            if(allOpen == accordion.classList.contains("show")){
+                accordion.classList.toggle("show");
+                const id = accordion.id;
+                const button = document.querySelector(`button[data-bs-target="#${id}"]`);
+                button.classList.toggle("collapsed");
+            }
         });
 
         allOpen = !allOpen;

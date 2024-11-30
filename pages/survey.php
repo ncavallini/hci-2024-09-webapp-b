@@ -1,9 +1,10 @@
 <?php
     $task_id = $_GET['task_id'];
     $group = $_GET['group'] ?? 0;
+    $onD =$_GET['onD'] ?? 0;
 ?>
 <h1 class="text-center">Survey</h1>
-<form action="actions/survey/submit.php?task_id=<?php echo $task_id; ?>&group=<?php echo $group; ?>" method="POST">
+<form action="actions/survey/submit.php?task_id=<?php echo $task_id; ?>&group=<?php echo $group; ?>&onD=<?php echo $onD;?>" method="POST">
     <label for="q1">How physically demanding was the task? <span id="q1_span">(5/10)</span></label>
     <input type="range" name="q1" id="q1" min="0" max="10" step="1" class="form-range">
     <br>

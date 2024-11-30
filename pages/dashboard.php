@@ -60,8 +60,10 @@ foreach ($tasks as $task) {
     echo "<li class='list-group-item'>{$task['title']} &nbsp;&nbsp;";
     if ($task['group_id'] != 0) {
         echo "<span class='badge bg-secondary rounded-pill'>{$task['group_name']}</span>";
+        echo "<div style='float:right'><a class='btn btn-sm btn-outline-primary' href='index.php?page=survey&task_id=".$task['task_id']."&group=".$task['group_id']."&onD=1'><i class='fa fa-check-square-o'></i></a></div>";
     } else {
         echo "<span class='badge bg-primary rounded-pill'>Personal</span>";
+        echo "<div style='float:right'><a class='btn btn-sm btn-outline-primary' href='index.php?page=survey&task_id=".$task['task_id']."&group=".$task['group_id']."&onD=1'><i class='fa fa-check-square-o'></i></a></div>";
     }
     echo "</li>";
 }

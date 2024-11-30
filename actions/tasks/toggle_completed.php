@@ -8,6 +8,7 @@ if(!Auth::is_logged_in()) {
 $connection = DBConnection::get_connection();
 $group_id = $_GET['group_id'] ?? 0; 
 $task_id = $_GET['task_id'];
+$onDashboard = $_GET['onD'] ?? 0;
 
 
 
@@ -76,6 +77,6 @@ $sql = "UPDATE users SET coins = GREATEST(0, coins + (?)) WHERE user_id = ?";
 $stmt = $connection->prepare($sql);
 $stmt->execute([$coins_to_add, Auth::user()['user_id']]);
 
-
+if($onDashboard != 0) $location = "../../index.php?page=dashboard";
 header("Location: $location");
 ?>

@@ -50,5 +50,13 @@ class UserUtils {
         $stmt->execute([Auth::user()['user_id']]);
         return $stmt->fetchColumn();
     }
+
+    public static function does_survey_exist(int $task_id, bool $isgroup): bool {
+        $dbconnection = DBConnection::get_connection();
+        $sql = $isgroup ? "SELECT group_task_id FROM group_surveys WHERE group_task_id = ?" : "SELECT task_id FROM surveys WHERE task_id = ?";
+        $stmt = $dbconnection->prepare($sql);
+        $stmt->execute([$task_id]);
+        return count($stmt->fetchAll()) != 0;
+    }
 }
 ?>
