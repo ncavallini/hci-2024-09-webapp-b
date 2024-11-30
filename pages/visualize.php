@@ -82,11 +82,6 @@ try {
 }
 ?>
 
-
-
-
-
-
 <div class="container mt-5">
     <h1 class="mb-4">All Tasks</h1>
     <!-- Mental Load Bar -->
@@ -122,95 +117,35 @@ try {
             <a class="nav-link" href="index.php?page=groupViewing"><button id="groupListButton" class="btn btn-secondary" onclick="showListView('groups')">Groups</button></a>    
         </div>
 
-        <!-- Right-aligned List/Pie Chart View Buttons -->
+        <!-- Right-aligned View Buttons -->
         <div class="d-flex flex-wrap gap-2">
-            <button id="listViewButton" class="btn btn-primary" onclick="showView('listView')">List View</button>
-            <button id="pieChartViewButton" class="btn btn-secondary" onclick="showView('pieChartView')">Pie Chart View</button>
-            <button id="bubbleChartViewButton" class="btn btn-secondary" onclick="showView('bubbleChartView')">Bubble Chart View</button>
+            <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
+            <button id="radarChartViewButton" class="btn btn-secondary" onclick="showView('radarChartView')">Radar Chart View</button>
+            <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
         </div>
     </div>
 
-
-    <!-- List View -->
-    <div id="listView" class="d-flex flex-column gap-3 overflow-auto" style="max-height: 80vh;">
-    <h3>Personal Tasks</h3>
-    <div id="personalTasks">
-        <?php if (!empty($personalTasks)): ?>
-            <?php foreach ($personalTasks as $task): ?>
-                <div class="task-item p-3 border rounded"
-                    style="word-wrap: break-word; overflow-wrap: anywhere; cursor: pointer;"
-                    onclick="showTaskDetails(<?php echo htmlspecialchars(json_encode($task), ENT_QUOTES); ?>)">
-                    <div class="task-info">
-                        <h5 class="mb-2"><?php echo htmlspecialchars($task['title']); ?></h5>
-                        <p class="mb-1 text-muted">Due: <?php echo (new DateTimeImmutable($task['due_date']))->format('Y-m-d H:i:s'); ?></p>
-                        <p class="mb-0 text-primary">Load: <?php echo htmlspecialchars($task['estimated_load']); ?></p>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <p class="lead text-center text-muted">No personal tasks found.</p>
-        <?php endif; ?>
+    <!-- Heatmap View -->
+    <div id="heatmapView" style="display: none;">
+        <canvas id="heatmapChart" width="400" height="400"></canvas>
     </div>
 
-    <h3 class="mt-4">Group Tasks</h3>
-    <div id="groupTasks">
-        <?php if (!empty($groupTasks)): ?>
-            <?php foreach ($groupTasks as $task): ?>
-                <div class="task-item p-3 border rounded"
-                    style="word-wrap: break-word; overflow-wrap: anywhere; cursor: pointer;"
-                    onclick="showTaskDetails(<?php echo htmlspecialchars(json_encode($task), ENT_QUOTES); ?>)">
-                    <div class="task-info">
-                        <h5 class="mb-2"><?php echo htmlspecialchars($task['title']); ?></h5>
-                        <p class="mb-1 text-muted">Group: <?php echo htmlspecialchars($task['group_name']); ?></p>
-                        <p class="mb-1 text-muted">Due: <?php echo (new DateTimeImmutable($task['due_date']))->format('Y-m-d H:i:s'); ?></p>
-                        <p class="mb-0 text-primary">Load: <?php echo htmlspecialchars($task['estimated_load']); ?></p>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <p class="lead text-center text-muted">No group tasks found.</p>
-        <?php endif; ?>
+    <!-- Radar Chart View -->
+    <div id="radarChartView" style="display: none;">
+        <canvas id="radarChart" width="400" height="400"></canvas>
     </div>
 
-    <!-- Overdue Tasks Section -->
-    <h3 class="mt-4">Overdue Tasks</h3>
-    <div id="overdueTasks">
-        <?php if (!empty($overdueTasks)): ?>
-            <?php foreach ($overdueTasks as $task): ?>
-                <div class="task-item p-3 border rounded" style="background-color: lightcoral; cursor: pointer;"
-                    onclick="showTaskDetails(<?php echo htmlspecialchars(json_encode($task), ENT_QUOTES); ?>)">
-                    <div class="task-info">
-                        <h5 class="mb-2"><?php echo htmlspecialchars($task['title']); ?></h5>
-                        <p class="mb-1 text-muted">Due: <?php echo (new DateTimeImmutable($task['due_date']))->format('Y-m-d H:i:s'); ?></p>
-                        <p class="mb-0 text-primary">Load: <?php echo htmlspecialchars($task['estimated_load']); ?></p>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <p class="lead text-center text-muted">No overdue tasks found.</p>
-        <?php endif; ?>
+    <!-- Scatter Chart View -->
+    <div id="scatterChartView" style="display: none;">
+        <canvas id="scatterChart" width="400" height="400"></canvas>
     </div>
-</div>
 
-
-
-                <!-- Pie Chart View -->
-                <div id="pieChartView" style="display: none;">
-                    <canvas id="pieChart" width="400" height="400"></canvas>
-                </div>
-            
-                <!-- Bubble Chart View -->
-                <div id="bubbleChartView" style="display: none;">
-                    <canvas id="bubbleChart" width="400" height="400"></canvas>
-                </div>
-
-
-                <!-- Task Details Modal -->
-                <div class="modal fade" id="taskDetailsModal" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
+    <!-- Task Details Modal -->
+    <div class="modal fade" id="taskDetailsModal" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="taskDetailsModalLabel">Task Details</h5>
+                    <h5 class="modal-title">Task Details</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -226,110 +161,379 @@ try {
             </div>
         </div>
     </div>
-    
 
 </div>
 
 <script>
+    let currentMode = 'tasks'; // Default to 'tasks'
+    let currentView = 'heatmapView'; // Default to 'heatmapView'
+    let heatmapChart;
+    let radarChart;
+    let scatterChart;
 
-     function showBubbleChart(mode) {
+    function showView(viewId) {
+        // Hide all views
+        document.getElementById('heatmapView').style.display = 'none';
+        document.getElementById('radarChartView').style.display = 'none';
+        document.getElementById('scatterChartView').style.display = 'none';
+
+        // Remove active class from buttons
+        document.getElementById('heatmapViewButton').classList.remove('btn-primary');
+        document.getElementById('heatmapViewButton').classList.add('btn-secondary');
+        document.getElementById('radarChartViewButton').classList.remove('btn-primary');
+        document.getElementById('radarChartViewButton').classList.add('btn-secondary');
+        document.getElementById('scatterChartViewButton').classList.remove('btn-primary');
+        document.getElementById('scatterChartViewButton').classList.add('btn-secondary');
+
+        // Show selected view
+        document.getElementById(viewId).style.display = 'block';
+        document.getElementById(`${viewId}Button`).classList.add('btn-primary');
+        document.getElementById(`${viewId}Button`).classList.remove('btn-secondary');
+
+        // Update current view
+        currentView = viewId;
+
+        // Call appropriate function
+        if (viewId === 'heatmapView') {
+            showHeatmapView(currentMode);
+        } else if (viewId === 'radarChartView') {
+            showRadarChartView(currentMode);
+        } else if (viewId === 'scatterChartView') {
+            showScatterChartView(currentMode);
+        }
+    }
+
+    function toggleTaskGroup(mode) {
         currentMode = mode;
-        const tasks = <?php echo json_encode($tasks); ?>;
-        const ctx = document.getElementById("bubbleChart").getContext("2d");
 
+        if (currentView === 'heatmapView') {
+            showHeatmapView(mode);
+        } else if (currentView === 'radarChartView') {
+            showRadarChartView(mode);
+        } else if (currentView === 'scatterChartView') {
+            showScatterChartView(mode);
+        }
+
+        // Update button styles
+        document.getElementById("taskListButton").classList.toggle("btn-primary", mode === "tasks");
+        document.getElementById("taskListButton").classList.toggle("btn-secondary", mode !== "tasks");
+        document.getElementById("groupListButton").classList.toggle("btn-primary", mode === "groups");
+        document.getElementById("groupListButton").classList.toggle("btn-secondary", mode !== "groups");
+    }
+
+    function showHeatmapView(mode) {
+        const tasks = <?php echo json_encode($tasks); ?>;
+        const canvas = document.getElementById("heatmapChart");
+        const ctx = canvas.getContext("2d");
+
+        // Filter tasks to exclude completed ones
         const activeTasks = tasks.filter(task => parseInt(task.is_completed, 10) === 0);
 
-        let bubbleData;
-        let groupData = {};
-
+        // Assign group colors dynamically
         const colorPalette = [
             '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
             '#FF9F40', '#E7E9ED', '#B39DDB', '#9CCC65', '#FF7043',
         ];
-
-        let groupColorMap = {};
+        const groupColorMap = {};
         let colorIndex = 0;
 
-        if (mode === 'tasks') {
-            activeTasks.forEach(task => {
-                if (!groupColorMap[task.group_name]) {
-                    groupColorMap[task.group_name] = colorPalette[colorIndex % colorPalette.length];
-                    colorIndex++;
-                }
+        // Prepare data for heatmap
+        const dataMatrix = [];
+        const xLabelsSet = new Set(); // Use Set to ensure uniqueness
+        const yLabelsSet = new Set();
+
+        // Process tasks to populate labels and matrix
+        activeTasks.forEach(task => {
+            const dueDate = new Date(task.due_date).toLocaleDateString();
+            const yValue = mode === 'tasks' ? task.title : task.group_name || 'Personal';
+            const groupName = task.group_name || 'Personal';
+
+            xLabelsSet.add(dueDate);
+            yLabelsSet.add(yValue);
+
+            // Assign color to group if not already assigned
+            if (!groupColorMap[groupName]) {
+                groupColorMap[groupName] = colorPalette[colorIndex % colorPalette.length];
+                colorIndex++;
+            }
+
+            // Map task to correct cell
+            dataMatrix.push({
+                xLabel: dueDate,
+                yLabel: yValue,
+                v: task.estimated_load,
+                task: task,
+                groupColor: groupColorMap[groupName],
             });
+        });
 
-            bubbleData = {
-                datasets: [{
-                    label: 'Tasks',
-                    data: activeTasks.map(task => ({
-                        x: task.due_date,
-                        y: task.estimated_load,
-                        r: task.estimated_load * 2, // Adjust as needed
-                        taskTitle: task.title,
-                        groupName: task.group_name,
-                        backgroundColor: groupColorMap[task.group_name],
-                    })),
-                    backgroundColor: activeTasks.map(task => groupColorMap[task.group_name]),
-                }]
-            };
-        } else if (mode === 'groups') {
-            activeTasks.forEach(task => {
-                if (!groupColorMap[task.group_name]) {
-                    groupColorMap[task.group_name] = colorPalette[colorIndex % colorPalette.length];
-                    colorIndex++;
-                }
-            });
+        // Convert Sets to sorted arrays
+        const xLabels = Array.from(xLabelsSet).sort((a, b) => new Date(a) - new Date(b)); // Sort due dates chronologically
+        const yLabels = Array.from(yLabelsSet); // No need to sort task titles/groups unless desired
 
-            activeTasks.forEach(task => {
-                if (!groupData[task.group_name]) {
-                    groupData[task.group_name] = {
-                        group_id: task.group_id,
-                        total_load: 0,
-                        task_count: 0,
-                        group_name: task.group_name,
-                        backgroundColor: groupColorMap[task.group_name],
-                    };
-                }
-                groupData[task.group_name].total_load += task.estimated_load;
-                groupData[task.group_name].task_count += 1;
-            });
+        // Map dataMatrix to correct indices
+        const matrixData = dataMatrix.map(data => ({
+            x: xLabels.indexOf(data.xLabel),
+            y: yLabels.indexOf(data.yLabel),
+            v: data.v,
+            task: data.task,
+            groupColor: data.groupColor,
+        }));
 
-            const groupDataArray = Object.values(groupData);
+        // Compute maximum estimated load for alpha scaling
+        const maxLoad = Math.max(...matrixData.map(d => d.v));
 
-            bubbleData = {
-                datasets: [{
-                    label: 'Groups',
-                    data: groupDataArray.map(group => ({
-                        x: group.task_count, // Number of tasks in the group
-                        y: group.total_load, // Total estimated load
-                        r: group.total_load * 2, // Adjust as needed
-                        groupName: group.group_name,
-                        backgroundColor: group.backgroundColor,
-                    })),
-                    backgroundColor: groupDataArray.map(group => group.backgroundColor),
-                }]
-            };
-        } else {
-            console.error("Invalid mode provided for bubble chart");
-            return;
+        // Dynamically calculate canvas size
+        const cellSize = 40; // Fixed size for each cell (adjust as needed)
+        const canvasWidth = cellSize * xLabels.length + 200; // Add extra padding for labels
+        const canvasHeight = cellSize * yLabels.length + 100; // Add extra padding for labels
+
+        // Set canvas size
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+
+        // Helper function to convert hex color to RGB
+        function hexToRgb(hex) {
+            hex = hex.replace('#', '');
+            const bigint = parseInt(hex, 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return [r, g, b];
         }
 
-        if (bubbleChart) bubbleChart.destroy();
+        // Destroy previous chart if it exists
+        if (heatmapChart) heatmapChart.destroy();
 
-        bubbleChart = new Chart(ctx, {
+        // Create the heatmap chart
+        heatmapChart = new Chart(ctx, {
+            type: 'matrix',
+            data: {
+                datasets: [{
+                    label: 'Task Heatmap',
+                    data: matrixData,
+                    backgroundColor(context) {
+                        const dataPoint = context.dataset.data[context.dataIndex];
+                        const [r, g, b] = hexToRgb(dataPoint.groupColor);
+                        const minAlpha = 0.2; // Minimum alpha to ensure visibility
+                        const alpha = minAlpha + (dataPoint.v / maxLoad) * (1 - minAlpha);
+                        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                    },
+                    borderWidth: 1,
+                    borderColor: 'white',
+                    width: cellSize - 5, // Adjust cell width
+                    height: cellSize - 5, // Adjust cell height
+                }]
+            },
+            options: {
+                maintainAspectRatio: false, // Allow chart to resize based on container
+                scales: {
+                    x: {
+                        type: 'category',
+                        labels: xLabels,
+                        title: {
+                            display: true,
+                            text: 'Due Dates',
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 90,
+                            minRotation: 45,
+                        },
+                    },
+                    y: {
+                        type: 'category',
+                        labels: yLabels,
+                        title: {
+                            display: true,
+                            text: mode === 'tasks' ? 'Tasks' : 'Groups',
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            padding: 10,
+                        },
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            generateLabels(chart) {
+                                return Object.keys(groupColorMap).map(groupName => ({
+                                    text: groupName,
+                                    fillStyle: groupColorMap[groupName],
+                                    strokeStyle: groupColorMap[groupName],
+                                    hidden: false,
+                                    lineWidth: 0,
+                                }));
+                            },
+                        },
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: () => '',
+                            label: context => {
+                                const dataPoint = context.dataset.data[context.dataIndex];
+                                const taskName = yLabels[dataPoint.y];
+                                const dueDate = xLabels[dataPoint.x];
+                                const groupName = dataPoint.task.group_name || 'Personal';
+                                return `${taskName} (Due: ${dueDate}, Group: ${groupName}, Load: ${dataPoint.v})`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function showRadarChartView(mode) {
+        const tasks = <?php echo json_encode($tasks); ?>;
+        const ctx = document.getElementById("radarChart").getContext("2d");
+
+        // Destroy previous chart if it exists
+        if (radarChart) radarChart.destroy();
+
+        // Prepare data for radar chart by listing individual tasks
+        // To prevent cluttering, we can limit the number of tasks displayed
+        const maxTasksToDisplay = 12; // Adjust as needed based on readability
+        let taskData;
+
+        if (mode === 'groups') {
+            // Filter tasks by groups and flatten them into a single array
+            taskData = tasks.filter(task => task.group_name && task.group_name !== 'Personal');
+        } else {
+            // Personal tasks or all tasks
+            taskData = tasks;
+        }
+
+        // Sort tasks by estimated load in descending order and take the top tasks
+        taskData = taskData.sort((a, b) => b.estimated_load - a.estimated_load).slice(0, maxTasksToDisplay);
+
+        // Prepare labels and data
+        const labels = taskData.map(task => task.title || 'Unnamed Task');
+        const dataValues = taskData.map(task => parseFloat(task.estimated_load));
+
+        // Create the radar chart
+        radarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Estimated Load per Task',
+                    data: dataValues,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)', // Light teal
+                    borderColor: 'rgba(75, 192, 192, 1)', // Darker teal
+                    borderWidth: 1,
+                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(75, 192, 192, 1)',
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        pointLabels: {
+                            font: {
+                                size: 14,
+                            },
+                        },
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const task = taskData[context.dataIndex];
+                                return `${task.title}: Estimated Load ${task.estimated_load}`;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false,
+                    }
+                }
+            }
+        });
+    }
+
+
+    function showScatterChartView(mode) {
+        const tasks = <?php echo json_encode($tasks); ?>;
+        const ctx = document.getElementById("scatterChart").getContext("2d");
+
+        // Destroy previous chart if it exists
+        if (scatterChart) scatterChart.destroy();
+
+        // Create a color map for groups
+        const colorPalette = [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+            '#FF9F40', '#E7E9ED', '#B39DDB', '#9CCC65', '#FF7043'
+        ];
+        const overdueColor = '#FF0000'; // Color for overdue tasks
+        const groupColorMap = {};
+        let colorIndex = 0;
+
+        // Assign unique colors to groups
+        tasks.forEach(task => {
+            const groupName = task.group_name || 'Personal';
+            if (!groupColorMap[groupName]) {
+                groupColorMap[groupName] = colorPalette[colorIndex % colorPalette.length];
+                colorIndex++;
+            }
+        });
+
+        // Get the current date
+        const now = new Date();
+
+        // Prepare data for scatter chart
+        const scatterData = tasks.map(task => {
+            const dueDate = new Date(task.due_date);
+            const isOverdue = dueDate < now;
+
+            return {
+                x: mode === 'tasks' ? dueDate : task.group_name,
+                y: task.estimated_load,
+                r: task.estimated_load * 2, // Adjust size as needed
+                groupName: task.group_name || 'Personal',
+                backgroundColor: isOverdue ? overdueColor : groupColorMap[task.group_name || 'Personal'],
+                isOverdue: isOverdue, // Include overdue flag for tooltips
+            };
+        });
+
+        // Prepare legend items for groups and overdue tasks
+        const legendItems = Object.entries(groupColorMap).map(([groupName, color]) => ({
+            text: groupName,
+            fillStyle: color,
+        }));
+        legendItems.push({
+            text: 'Overdue Tasks',
+            fillStyle: overdueColor,
+        });
+
+        // Create the scatter chart
+        scatterChart = new Chart(ctx, {
             type: 'bubble',
-            data: bubbleData,
+            data: {
+                datasets: [{
+                    label: mode === 'tasks' ? 'Tasks' : 'Groups',
+                    data: scatterData,
+                    backgroundColor: scatterData.map(point => point.backgroundColor),
+                }]
+            },
             options: {
                 scales: {
                     x: {
-                        type: mode === 'tasks' ? 'time' : 'linear',
+                        type: mode === 'tasks' ? 'time' : 'category',
                         time: {
                             unit: 'day',
                             tooltipFormat: 'MMM d, yyyy',
                         },
                         title: {
                             display: true,
-                            text: mode === 'tasks' ? 'Due Date' : 'Number of Tasks',
+                            text: mode === 'tasks' ? 'Due Date' : 'Group Name',
                         },
                     },
                     y: {
@@ -340,47 +544,20 @@ try {
                     },
                 },
                 plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const index = context.dataIndex;
-                                const dataPoint = context.dataset.data[index];
-                                if (mode === 'tasks') {
-                                    return `${dataPoint.taskTitle} (${dataPoint.groupName}): Load ${dataPoint.y}`;
-                                } else if (mode === 'groups') {
-                                    return `${dataPoint.groupName}: ${dataPoint.x} tasks, Total Load ${dataPoint.y}`;
-                                }
-                            },
-                        },
-                    },
                     legend: {
                         display: true,
                         labels: {
-                            generateLabels: function(chart) {
-                                const labels = [];
-                                if (mode === 'groups') {
-                                    chart.data.datasets[0].data.forEach((dataPoint, index) => {
-                                        labels.push({
-                                            text: dataPoint.groupName,
-                                            fillStyle: dataPoint.backgroundColor,
-                                            strokeStyle: dataPoint.backgroundColor,
-                                            hidden: false,
-                                            index: index,
-                                        });
-                                    });
-                                } else if (mode === 'tasks') {
-                                    const uniqueGroups = [...new Set(activeTasks.map(task => task.group_name))];
-                                    uniqueGroups.forEach((groupName, idx) => {
-                                        labels.push({
-                                            text: groupName,
-                                            fillStyle: groupColorMap[groupName],
-                                            strokeStyle: groupColorMap[groupName],
-                                            hidden: false,
-                                            index: idx,
-                                        });
-                                    });
-                                }
-                                return labels;
+                            generateLabels: function() {
+                                return legendItems;
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const dataPoint = context.raw;
+                                const overdueText = dataPoint.isOverdue ? ' (Overdue)' : '';
+                                return `${dataPoint.groupName}: Load ${dataPoint.y}${overdueText}`;
                             },
                         },
                     },
@@ -389,340 +566,62 @@ try {
         });
     }
 
+    function updateProgressBar(loadPercentage) {
+        const loadProgressBar = document.querySelector("#loadProgressBar");
 
-
-        let pieChart; // Chart.js instance
-        let currentMode = 'tasks'; // Default to 'tasks'
-        let bubbleChart;
-
-        
-        
-        function showView(viewId) {
-            const listView = document.getElementById('listView');
-            const pieChartView = document.getElementById('pieChartView');
-            const bubbleChartView = document.getElementById('bubbleChartView');
-            const listViewButton = document.getElementById('listViewButton');
-            const pieChartViewButton = document.getElementById('pieChartViewButton');
-            const bubbleChartViewButton = document.getElementById('bubbleChartViewButton');
-
-            // Reset views
-            listView.classList.remove('visible', 'hidden');
-            pieChartView.classList.remove('visible', 'hidden');
-            bubbleChartView.classList.remove('visible', 'hidden');
-
-            // Update button styles
-            listViewButton.classList.toggle('btn-primary', viewId === 'listView');
-            listViewButton.classList.toggle('btn-secondary', viewId !== 'listView');
-
-            pieChartViewButton.classList.toggle('btn-primary', viewId === 'pieChartView');
-            pieChartViewButton.classList.toggle('btn-secondary', viewId !== 'pieChartView');
-
-            bubbleChartViewButton.classList.toggle('btn-primary', viewId === 'bubbleChartView');
-            bubbleChartViewButton.classList.toggle('btn-secondary', viewId !== 'bubbleChartView');
-
-            // Show the selected view
-            if (viewId === 'listView') {
-                listView.classList.add('visible');
-                pieChartView.classList.add('hidden');
-                bubbleChartView.classList.add('hidden');
-                showListView(currentMode);
-            } else if (viewId === 'pieChartView') {
-                listView.classList.add('hidden');
-                pieChartView.classList.add('visible');
-                bubbleChartView.classList.add('hidden');
-                showPieChart(currentMode);
-            } else if (viewId === 'bubbleChartView') {
-                listView.classList.add('hidden');
-                pieChartView.classList.add('hidden');
-                bubbleChartView.classList.add('visible');
-                showBubbleChart(currentMode);
-            }
-
-            document.getElementById('taskListButton').addEventListener('click', () => toggleTaskGroup('tasks'));
-            document.getElementById('groupListButton').addEventListener('click', () => toggleTaskGroup('groups'));
-            document.getElementById('listViewButton').addEventListener('click', () => showView('listView'));
-            document.getElementById('pieChartViewButton').addEventListener('click', () => showView('pieChartView'));
-            document.getElementById('bubbleChartViewButton').addEventListener('click', () => showView('bubbleChartView'));
-        }
-
-
-
-
-
-        function showListView(mode) {
-            const container = document.getElementById("taskItems");
-            container.innerHTML = "";
-
-            const tasks = <?php echo json_encode($tasks); ?>;
-
-            const activeTasks = tasks.filter(task => task.is_completed !== 1);
-
-            if (mode === "tasks") {
-                activeTasks.forEach(task => {
-                    const isCompleted = task.is_completed === 1;
-                    const dueDate = new Date(task.due_date);
-                    const now = new Date();
-                    const isOverdue = dueDate < now && !isCompleted;
-
-                    const taskDiv = document.createElement("div");
-                    taskDiv.className = "task-item d-flex justify-content-between align-items-center p-3 border rounded";
-                    taskDiv.style.backgroundColor = isOverdue ? "lightcoral" : "black";
-                    
-                    taskDiv.innerHTML = `
-                        <div class="task-info">
-                            <h5 class="${isCompleted ? 'text-primary' : ''} mb-1">
-                                ${task.title} ${isCompleted ? '<span class="badge bg-success">Completed</span>' : ''}
-                            </h5>
-                            `;
-                        taskDiv.innerHTML += ` <p class="mb-1 text-muted">${task.group_name === 'Personal' ? 'Personal Task' : 'Group: ' +  task.group_name}</p>
-                            <small class="text-muted">Due: ${dueDate.toLocaleString()}</small>
-                        </div>
-                        <div class="task-load text-end">
-                            <span class="badge bg-primary">Load: ${task.estimated_load}</span>
-                        </div>
-        `;
-                    container.appendChild(taskDiv);
-                });
-            } else if (mode === "groups") {
-                const groupedTasks = tasks.reduce((acc, task) => {
-                    acc[task.group_name] = acc[task.group_name] || { group_id: task.group_id, tasks: [] };
-                    acc[task.group_name].tasks.push(task);
-                    return acc;
-                }, {});
-
-
-                //NICCOLO HELP
-                Object.entries(groupedTasks).forEach(([groupName, groupData]) => {
-                    const groupDiv = document.createElement("div");
-                    groupDiv.className = "group-item border rounded p-3 mb-3";
-                    groupDiv.innerHTML = `
-                        <h5>
-                            <a href="#" class="text-decoration-none group-link">${groupName}</a>
-                        </h5>
-                        <p>${groupData.tasks.length} tasks in this group</p>
-                    `;
-
-                    // Add click event listener for redirection
-                    groupDiv.querySelector(".group-link").addEventListener("click", (event) => {
-                        event.preventDefault(); // Prevent the default link behavior
-                        if(groupData.group_id != 0)
-                            window.location.href = `index.php?page=groupview&id=${groupData.group_id}`
-                        else 
-                            window.location.href = `index.php?page=visualize_personal`
-                    });
-
-                    container.appendChild(groupDiv);
-                });
-
-        }
-
-        document.getElementById("taskListButton").classList.toggle("btn-primary", mode === "tasks");
-        document.getElementById("taskListButton").classList.toggle("btn-secondary", mode !== "tasks");
-        document.getElementById("groupListButton").classList.toggle("btn-primary", mode === "groups");
-        document.getElementById("groupListButton").classList.toggle("btn-secondary", mode !== "groups");
-    }
-
-
-
-
-    function showTaskDetails(task) {
-            document.getElementById('taskTitle').textContent = task.title;
-            document.getElementById('taskDescription').textContent = task.description;
-            document.getElementById('taskLocation').textContent = task.location;
-            document.getElementById('taskDueDate').textContent = new Date(task.due_date).toLocaleString();
-            document.getElementById('taskEstimatedLoad').textContent = task.estimated_load;
-            new bootstrap.Modal(document.getElementById('taskDetailsModal')).show();
-        }
-
-    function showPieChart(mode) {
-    currentMode = mode; // Remember the current mode
-    const tasks = <?php echo json_encode($tasks); ?>;
-    const ctx = document.getElementById("pieChart").getContext("2d");
-
-    // Filter tasks to exclude completed ones
-    const activeTasks = tasks.filter(task => parseInt(task.is_completed, 10) === 0);
-
-    console.log("Active tasks for pie chart:", activeTasks); // Debugging active tasks
-
-    let pieData;
-
-    if (mode === 'tasks') {
-        // Prepare data for tasks
-        pieData = {
-            labels: activeTasks.map(task => task.title),
-            datasets: [{
-                data: activeTasks.map(task => task.estimated_load),
-                backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#dc3545', '#6610f2']
-            }]
-        };
-    } else if (mode === 'groups') {
-        // Prepare data for groups
-        const groupData = activeTasks.reduce((acc, task) => {
-            if (!acc[task.group_name]) {
-                acc[task.group_name] = { group_id: task.group_id, load: 0 };
-            }
-            acc[task.group_name].load += task.estimated_load;
-            return acc;
-        }, {});
-
-        console.log("Group data for pie chart:", groupData); // Debugging grouped data
-
-        pieData = {
-            labels: Object.keys(groupData),
-            datasets: [{
-                data: Object.values(groupData).map(group => group.load),
-                backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#dc3545', '#6610f2']
-            }]
-        };
-    } else {
-        console.error("Invalid mode provided for pie chart");
-        return;
-    }
-
-    // Destroy previous chart instance if it exists
-    if (pieChart) pieChart.destroy();
-
-    // Create the new pie chart
-    pieChart = new Chart(ctx, {
-        type: 'pie',
-        data: pieData,
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'top' },
-                tooltip: {
-                    callbacks: {
-                        label: (tooltipItem) => {
-                            const label = pieData.labels[tooltipItem.dataIndex];
-                            const value = pieData.datasets[0].data[tooltipItem.dataIndex];
-                            return `${label}: ${value}`;
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-
-
-function updateProgressBar(loadPercentage) {
-    const loadProgressBar = document.querySelector("#loadProgressBar");
-
-    if (!loadProgressBar) {
-        console.error("Progress bar element not found!");
-        return;
-    }
-
-    // Set the progress bar width and aria attributes
-    loadProgressBar.style.width = `${loadPercentage}%`;
-    loadProgressBar.setAttribute("aria-valuenow", loadPercentage);
-
-    // Change the progress bar's background color based on the percentage
-    if (loadPercentage >= 80) {
-        loadProgressBar.style.backgroundColor = "darkred";
-    } else if (loadPercentage >= 50) {
-        loadProgressBar.style.backgroundColor = "orange";
-    } else {
-        loadProgressBar.style.backgroundColor = "lightgreen";
-    }
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-    const loadPercentage = <?php echo $load_percentage; ?>;
-    updateProgressBar(loadPercentage);
-});
-
-
-    function highlightOverdueTasks() {
-        const taskItems = document.querySelectorAll(".task-item");
-
-        if (!taskItems) {
-            console.error("Task items not found!");
+        if (!loadProgressBar) {
+            console.error("Progress bar element not found!");
             return;
         }
 
-        // Get the current date and time
-        const now = new Date();
+        // Set the progress bar width and aria attributes
+        loadProgressBar.style.width = `${loadPercentage}%`;
+        loadProgressBar.setAttribute("aria-valuenow", loadPercentage);
 
-        // Loop through each task item
-        taskItems.forEach(taskItem => {
-            // Extract the due date from the task's data attribute or inner HTML
-            const dueDateElement = taskItem.querySelector(".task-info small");
-            if (dueDateElement) {
-                const dueDateText = dueDateElement.textContent.replace("Due: ", "");
-                const dueDate = new Date(dueDateText);
-
-
-            }
-        });
+        // Change the progress bar's background color based on the percentage
+        if (loadPercentage >= 80) {
+            loadProgressBar.style.backgroundColor = "darkred";
+        } else if (loadPercentage >= 50) {
+            loadProgressBar.style.backgroundColor = "orange";
+        } else {
+            loadProgressBar.style.backgroundColor = "lightgreen";
+        }
     }
 
-
-
-    document.addEventListener('DOMContentLoaded', () => {
-        // Default to List View and Tasks mode
-        showView('listView');
-        showListView('tasks');
-
-        // Example: Use PHP to pass the load_percentage to JavaScript
-        const progressBar = document.getElementById("loadProgressBar");
-        const loadPercentage = <?php echo round($load_percentage); ?>;
-
-        // Call the updateProgressBar function with the initial load percentage
+    document.addEventListener("DOMContentLoaded", function () {
+        const loadPercentage = <?php echo $load_percentage; ?>;
         updateProgressBar(loadPercentage);
 
-        
-        document.addEventListener('DOMContentLoaded', () => {
-    // Initialize default view and mode
-    showView('listView');
-    showListView('tasks');
-
-    // Event listeners for switching between views
-    document.getElementById('listViewButton').addEventListener('click', () => showView('listView'));
-    document.getElementById('pieChartViewButton').addEventListener('click', () => showView('pieChartView'));
-    document.getElementById('bubbleChartViewButton').addEventListener('click', () => showView('bubbleChartView'));
-
-    // Event listeners for toggling tasks and groups
-    document.getElementById('taskListButton').addEventListener('click', () => {
-        console.log("Switching to Task View");
+        // Initialize default view and mode
+        showView('heatmapView');
         toggleTaskGroup('tasks');
+
+        // Event listeners for switching between views
+        document.getElementById('heatmapViewButton').addEventListener('click', () => showView('heatmapView'));
+        document.getElementById('radarChartViewButton').addEventListener('click', () => showView('radarChartView'));
+        document.getElementById('scatterChartViewButton').addEventListener('click', () => showView('scatterChartView'));
+
+        // Event listeners for toggling tasks and groups
+        document.getElementById('taskListButton').addEventListener('click', () => {
+            toggleTaskGroup('tasks');
+        });
+
+        document.getElementById('groupListButton').addEventListener('click', () => {
+            toggleTaskGroup('groups');
+        });
     });
 
-    document.getElementById('groupListButton').addEventListener('click', () => {
-        console.log("Switching to Group View");
-        toggleTaskGroup('groups');
-    });
-});
-
-function toggleTaskGroup(mode) {
-    currentMode = mode;
-
-    if (currentView === 'listView') {
-        showListView(mode);
-    } else if (currentView === 'pieChartView') {
-        showPieChart(mode);
-    } else if (currentView === 'bubbleChartView') {
-        showBubbleChart(mode);
+    function showTaskDetails(task) {
+        document.getElementById('taskTitle').textContent = task.title;
+        document.getElementById('taskDescription').textContent = task.description;
+        document.getElementById('taskLocation').textContent = task.location;
+        document.getElementById('taskDueDate').textContent = new Date(task.due_date).toLocaleString();
+        document.getElementById('taskEstimatedLoad').textContent = task.estimated_load;
+        new bootstrap.Modal(document.getElementById('taskDetailsModal')).show();
     }
-}
-
-        highlightOverdueTasks();
-    });
-
-
 </script>
 
 <style>
-    .task-item:hover {
-        background-color: #e9ecef; /* Light grey hover */
-        color: inherit;
-        cursor: pointer;
-    }
-    .group-item:hover {
-        background-color: #e9ecef;
-    }
-
     .hidden {
         display: none !important;
     }
@@ -737,11 +636,6 @@ function toggleTaskGroup(mode) {
     .bg-success {
         background-color: #28a745 !important;
         color: white;
-    }
-
-    .task-item:hover {
-        background-color: #e9ecef;
-        cursor: pointer;
     }
 
     .btn-uniform {
@@ -759,4 +653,14 @@ function toggleTaskGroup(mode) {
         flex-grow: 1; /* Ensures buttons expand equally */
     }
 
+    #heatmapView {
+        overflow: auto;
+        max-height: 100%; /* Adjust height as necessary */
+    }
+
+    #heatmapChart {
+        /* Optional: Ensure the canvas is large enough */
+        width: 1000px; /* Adjust width as necessary */
+        height: 1000px; /* Adjust height as necessary */
+    }
 </style>

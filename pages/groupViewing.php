@@ -131,14 +131,12 @@ try {
 }
 ?>
 
-
-
 <div class="container mt-5">
     <h1 class="mb-4">All Tasks</h1>
 
     <div class="mb-4 position-relative">
         <h5>Your Mental Load
-            <a class= "nav-link" href="index.php?page=pastLoad"> 
+            <a class="nav-link" href="index.php?page=pastLoad"> 
                 <button 
                     class="btn btn-sm btn-info position-absolute top-0 end-0" >
                     Past Mental Load
@@ -162,416 +160,238 @@ try {
 
     <!-- Buttons Row -->
     <div class="d-flex justify-content-between mb-3 gap-2">
-        <!-- Left-aligned Task/Group Buttons -->
+        <!-- Left-aligned Group Button -->
         <div class="d-flex flex-wrap gap-2">
             <a class="nav-link" href="index.php?page=visualize"><button id="taskListButton" class="btn btn-secondary" onclick="showListView('tasks')">Tasks</button></a>
-            <button id="groupListButton" class="btn btn-primary" onclick="showListView('groups')">Groups</button>
+            <button id="groupButton" class="btn btn-primary">Groups</button>
         </div>
 
-        <!-- Right-aligned List/Pie Chart View Buttons -->
+        <!-- Right-aligned View Buttons -->
         <div class="d-flex flex-wrap gap-2">
-            <button id="listViewButton" class="btn btn-primary" onclick="showView('listView')">List View</button>
-            <button id="pieChartViewButton" class="btn btn-secondary" onclick="showView('pieChartView')">Pie Chart View</button>
-            <button id="bubbleChartViewButton" class="btn btn-secondary" onclick="showView('bubbleChartView')">Bubble Chart View</button>
+            <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
+            <button id="radarChartViewButton" class="btn btn-secondary" onclick="showView('radarChartView')">Radar Chart View</button>
+            <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
         </div>
     </div>
 
-
-    <!-- List View -->
-    <div id="listView" class="d-flex flex-column gap-3 overflow-auto" style="max-height: 80vh;">
-        <div id="taskItems">
-        </div>
+    <!-- Dynamic Group Buttons -->
+    <div id="groupButtonsContainer" class="d-flex flex-wrap gap-2 mt-3">
+        <?php foreach ($groupTasks as $groupTask): ?>
+            <?php if (!isset($groupsAdded[$groupTask['group_name']])): ?>
+                <?php $groupsAdded[$groupTask['group_name']] = true; ?>
+                <button class="btn btn-outline-primary btn-sm" onclick="navigateToGroup(<?php echo $groupTask['group_id']; ?>)">
+                    View <?php echo htmlspecialchars($groupTask['group_name']); ?>
+                </button>
+            <?php endif; ?>
+        <?php endforeach; ?>
+        <!-- Add Personal group button -->
+        <button class="btn btn-outline-primary btn-sm" onclick="navigateToPersonalGroup()">View Personal</button>
     </div>
 
-    <!-- Modal for Group Details OPENS OVERLAY DETAILS-->
-    <div class="modal fade" id="groupDetailsModal" tabindex="-1" aria-labelledby="groupDetailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="groupDetailsModalLabel">Group Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <h5 id="groupName"></h5>
-                    <ul id="groupTasksList" class="list-unstyled"></ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
+    <!-- Heatmap View -->
+    <div id="heatmapView" style="display: none;">
+        <canvas id="heatmapChart" width="400" height="400"></canvas>
     </div>
 
-    <!-- Pie Chart View -->
-    <div id="pieChartView" style="display: none;">
-        <canvas id="pieChart" width="400" height="400"></canvas>
+    <!-- Radar Chart View -->
+    <div id="radarChartView" style="display: none;">
+        <canvas id="radarChart" width="400" height="400"></canvas>
     </div>
 
-    <!-- Bubble Chart View -->
-    <div id="bubbleChartView" style="display: none;">
-        <canvas id="bubbleChart" width="400" height="400"></canvas>
+    <!-- Scatter Chart View -->
+    <div id="scatterChartView" style="display: none;">
+        <canvas id="scatterChart" width="400" height="400"></canvas>
     </div>
 </div>
 
-
-
 <script>
-    function showBubbleChart(mode) {
-        currentMode = mode;
-        const tasks = <?php echo json_encode($tasks); ?>;
-        const ctx = document.getElementById("bubbleChart").getContext("2d");
+    let heatmapChart;
+    let radarChart;
+    let scatterChart;
 
-        const activeTasks = tasks.filter(task => parseInt(task.is_completed, 10) === 0);
-
-        let bubbleData;
-        let groupData = {};
-
-        const colorPalette = [
-            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-            '#FF9F40', '#E7E9ED', '#B39DDB', '#9CCC65', '#FF7043',
-        ];
-
-        let groupColorMap = {};
-        let colorIndex = 0;
-
-        if (mode === 'tasks') {
-            activeTasks.forEach(task => {
-                if (!groupColorMap[task.group_name]) {
-                    groupColorMap[task.group_name] = colorPalette[colorIndex % colorPalette.length];
-                    colorIndex++;
-                }
-            });
-
-            bubbleData = {
-                datasets: [{
-                    label: 'Tasks',
-                    data: activeTasks.map(task => ({
-                        x: task.due_date,
-                        y: task.estimated_load,
-                        r: task.estimated_load * 2, // Adjust as needed
-                        taskTitle: task.title,
-                        groupName: task.group_name,
-                        backgroundColor: groupColorMap[task.group_name],
-                    })),
-                    backgroundColor: activeTasks.map(task => groupColorMap[task.group_name]),
-                }]
-            };
-        } else if (mode === 'groups') {
-            activeTasks.forEach(task => {
-                if (!groupColorMap[task.group_name]) {
-                    groupColorMap[task.group_name] = colorPalette[colorIndex % colorPalette.length];
-                    colorIndex++;
-                }
-            });
-
-            activeTasks.forEach(task => {
-                if (!groupData[task.group_name]) {
-                    groupData[task.group_name] = {
-                        group_id: task.group_id,
-                        total_load: 0,
-                        task_count: 0,
-                        group_name: task.group_name,
-                        backgroundColor: groupColorMap[task.group_name],
-                    };
-                }
-                groupData[task.group_name].total_load += task.estimated_load;
-                groupData[task.group_name].task_count += 1;
-            });
-
-            const groupDataArray = Object.values(groupData);
-
-            bubbleData = {
-                datasets: [{
-                    label: 'Groups',
-                    data: groupDataArray.map(group => ({
-                        x: group.task_count, // Number of tasks in the group
-                        y: group.total_load, // Total estimated load
-                        r: group.total_load * 2, // Adjust as needed
-                        groupName: group.group_name,
-                        backgroundColor: group.backgroundColor,
-                    })),
-                    backgroundColor: groupDataArray.map(group => group.backgroundColor),
-                }]
-            };
-        } else {
-            console.error("Invalid mode provided for bubble chart");
-            return;
+    function navigateToGroup(groupId) {
+        if (groupId) {
+            window.location.href = `index.php?page=groupview&id=${groupId}`;
         }
-
-        if (bubbleChart) bubbleChart.destroy();
-
-        bubbleChart = new Chart(ctx, {
-            type: 'bubble',
-            data: bubbleData,
-            options: {
-                scales: {
-                    x: {
-                        type: mode === 'tasks' ? 'time' : 'linear',
-                        time: {
-                            unit: 'day',
-                            tooltipFormat: 'MMM d, yyyy',
-                        },
-                        title: {
-                            display: true,
-                            text: mode === 'tasks' ? 'Due Date' : 'Number of Tasks',
-                        },
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Estimated Load',
-                        },
-                    },
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const index = context.dataIndex;
-                                const dataPoint = context.dataset.data[index];
-                                if (mode === 'tasks') {
-                                    return `${dataPoint.taskTitle} (${dataPoint.groupName}): Load ${dataPoint.y}`;
-                                } else if (mode === 'groups') {
-                                    return `${dataPoint.groupName}: ${dataPoint.x} tasks, Total Load ${dataPoint.y}`;
-                                }
-                            },
-                        },
-                    },
-                    legend: {
-                        display: true,
-                        labels: {
-                            generateLabels: function(chart) {
-                                const labels = [];
-                                if (mode === 'groups') {
-                                    chart.data.datasets[0].data.forEach((dataPoint, index) => {
-                                        labels.push({
-                                            text: dataPoint.groupName,
-                                            fillStyle: dataPoint.backgroundColor,
-                                            strokeStyle: dataPoint.backgroundColor,
-                                            hidden: false,
-                                            index: index,
-                                        });
-                                    });
-                                } else if (mode === 'tasks') {
-                                    const uniqueGroups = [...new Set(activeTasks.map(task => task.group_name))];
-                                    uniqueGroups.forEach((groupName, idx) => {
-                                        labels.push({
-                                            text: groupName,
-                                            fillStyle: groupColorMap[groupName],
-                                            strokeStyle: groupColorMap[groupName],
-                                            hidden: false,
-                                            index: idx,
-                                        });
-                                    });
-                                }
-                                return labels;
-                            },
-                        },
-                    },
-                },
-            },
-        });
     }
 
-
-
-        let pieChart; // Chart.js instance
-        let currentMode = 'groups'; // Default to 'tasks'
-        let bubbleChart;
-
-        
-        function showView(viewId) {
-            const listView = document.getElementById('listView');
-            const pieChartView = document.getElementById('pieChartView');
-            const bubbleChartView = document.getElementById('bubbleChartView');
-            const listViewButton = document.getElementById('listViewButton');
-            const pieChartViewButton = document.getElementById('pieChartViewButton');
-            const bubbleChartViewButton = document.getElementById('bubbleChartViewButton');
-
-            // Reset views
-            listView.classList.remove('visible', 'hidden');
-            pieChartView.classList.remove('visible', 'hidden');
-            bubbleChartView.classList.remove('visible', 'hidden');
-
-            // Update button styles
-            listViewButton.classList.toggle('btn-primary', viewId === 'listView');
-            listViewButton.classList.toggle('btn-secondary', viewId !== 'listView');
-
-            pieChartViewButton.classList.toggle('btn-primary', viewId === 'pieChartView');
-            pieChartViewButton.classList.toggle('btn-secondary', viewId !== 'pieChartView');
-
-            bubbleChartViewButton.classList.toggle('btn-primary', viewId === 'bubbleChartView');
-            bubbleChartViewButton.classList.toggle('btn-secondary', viewId !== 'bubbleChartView');
-
-            // Show the selected view
-            if (viewId === 'listView') {
-                listView.classList.add('visible');
-                pieChartView.classList.add('hidden');
-                bubbleChartView.classList.add('hidden');
-                showListView(currentMode);
-            } else if (viewId === 'pieChartView') {
-                listView.classList.add('hidden');
-                pieChartView.classList.add('visible');
-                bubbleChartView.classList.add('hidden');
-                showPieChart(currentMode);
-            } else if (viewId === 'bubbleChartView') {
-                listView.classList.add('hidden');
-                pieChartView.classList.add('hidden');
-                bubbleChartView.classList.add('visible');
-                showBubbleChart(currentMode);
-            }
-        }
-
-
-
-
-
-        function showListView(mode) {
-    const container = document.getElementById("taskItems");
-    container.innerHTML = "";
-
-    const tasks = <?php echo json_encode($tasks); ?>;
-    
-    const activeTasks = tasks.filter(task => task.is_completed !== 1);
-
-    if (mode === "groups") {
-        const groupedTasks = activeTasks.reduce((acc, task) => {
-            // Initialize the group if it doesn't exist
-            if (!acc[task.group_name]) {
-                acc[task.group_name] = { group_id: task.group_id, tasks: [], total_load: 0 };
-            }
-            // Add task to the group
-            acc[task.group_name].tasks.push(task);
-            // Accumulate the load
-            acc[task.group_name].total_load += task.estimated_load;
-            return acc;
-        }, {});
-
-        Object.entries(groupedTasks).forEach(([groupName, groupData]) => {
-            const groupDiv = document.createElement("div");
-            groupDiv.className = "group-item border rounded p-3 mb-3";
-            groupDiv.innerHTML = `
-                <h5 class="justify-content-between">
-                    ${groupName}
-                    <button class="btn btn-primary btn-sm view-group-button">View Group</button>
-                </h5>
-                <p>${groupData.tasks.length} tasks in this group</p>
-                <p class="mb-2 text-muted">Load: ${groupData.total_load}</p>
-            `;
-
-            // Add click event listener for the button
-            groupDiv.querySelector(".view-group-button").addEventListener("click", (event) => {
-                event.preventDefault(); // Prevent default behavior
-                if (groupData.group_id != 0) {
-                    // Redirect to the group-specific URL
-                    window.location.href = `index.php?page=groupview&id=${groupData.group_id}`;
-                } else {
-                    // Redirect to the personal group visualization page
-                    window.location.href = `index.php?page=visualize_personal`;
-                }
-            });
-
-            container.appendChild(groupDiv);
-        });
+    function navigateToPersonalGroup() {
+        window.location.href = `index.php?page=visualize_personal`;
     }
 
-    document.getElementById("taskListButton").classList.toggle("btn-primary", mode === "tasks");
-    document.getElementById("taskListButton").classList.toggle("btn-secondary", mode !== "tasks");
-    document.getElementById("groupListButton").classList.toggle("btn-primary", mode === "groups");
-    document.getElementById("groupListButton").classList.toggle("btn-secondary", mode !== "groups");
-}
+    function showView(viewId) {
+        const heatmapView = document.getElementById('heatmapView');
+        const radarChartView = document.getElementById('radarChartView');
+        const scatterChartView = document.getElementById('scatterChartView');
+        const heatmapViewButton = document.getElementById('heatmapViewButton');
+        const radarChartViewButton = document.getElementById('radarChartViewButton');
+        const scatterChartViewButton = document.getElementById('scatterChartViewButton');
 
+        // Reset views
+        heatmapView.style.display = 'none';
+        radarChartView.style.display = 'none';
+        scatterChartView.style.display = 'none';
 
-// Function to populate and show the Group Details Modal
-function showGroupDetailsModal(groupName, tasks) {
-    const groupNameElement = document.getElementById("groupName");
-    const groupTasksList = document.getElementById("groupTasksList");
+        // Update button styles
+        heatmapViewButton.classList.toggle('btn-primary', viewId === 'heatmapView');
+        heatmapViewButton.classList.toggle('btn-secondary', viewId !== 'heatmapView');
 
-    // Populate group name
-    groupNameElement.textContent = groupName;
+        radarChartViewButton.classList.toggle('btn-primary', viewId === 'radarChartView');
+        radarChartViewButton.classList.toggle('btn-secondary', viewId !== 'radarChartView');
 
-    // Populate task list
-    groupTasksList.innerHTML = ""; // Clear previous content
-    tasks.forEach(task => {
-        const taskItem = document.createElement("li");
-        taskItem.className = "mb-2";
-        taskItem.innerHTML = `
-            <strong>${task.title}</strong>
-            <p class="mb-0 text-muted">Due: ${new Date(task.due_date).toLocaleString()}</p>
-            <p class="mb-0 text-muted">Load: ${task.estimated_load}</p>
-        `;
-        groupTasksList.appendChild(taskItem);
-    });
+        scatterChartViewButton.classList.toggle('btn-primary', viewId === 'scatterChartView');
+        scatterChartViewButton.classList.toggle('btn-secondary', viewId !== 'scatterChartView');
 
-    // Show the modal
-    const modal = new bootstrap.Modal(document.getElementById("groupDetailsModal"));
-    modal.show();
-}
+        // Show the selected view
+        if (viewId === 'heatmapView') {
+            heatmapView.style.display = 'block';
+            showHeatmapView();
+        } else if (viewId === 'radarChartView') {
+            radarChartView.style.display = 'block';
+            showRadarChartView();
+        } else if (viewId === 'scatterChartView') {
+            scatterChartView.style.display = 'block';
+            showScatterChartView();
+        }
+    }
 
-
-
-    function showPieChart(mode) {
-    currentMode = mode; // Remember the current mode
+    function showHeatmapView() {
     const tasks = <?php echo json_encode($tasks); ?>;
-    const ctx = document.getElementById("pieChart").getContext("2d");
+    const canvas = document.getElementById("heatmapChart");
+    const ctx = canvas.getContext("2d");
 
     // Filter tasks to exclude completed ones
     const activeTasks = tasks.filter(task => parseInt(task.is_completed, 10) === 0);
 
-    console.log("Active tasks for pie chart:", activeTasks); // Debugging active tasks
+    // Prepare data for heatmap
+    const groupDataMap = {};
 
-    let pieData;
+    activeTasks.forEach(task => {
+        const groupName = task.group_name || 'Personal';
+        if (!groupDataMap[groupName]) {
+            groupDataMap[groupName] = { total_load: 0, task_count: 0 };
+        }
+        groupDataMap[groupName].total_load += parseFloat(task.estimated_load);
+        groupDataMap[groupName].task_count += 1;
+    });
 
-    if (mode === 'tasks') {
-        // Prepare data for tasks
-        pieData = {
-            labels: activeTasks.map(task => task.title),
+    // Assign colors to groups dynamically
+    const colorPalette = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+        '#FF9F40', '#E7E9ED', '#B39DDB', '#9CCC65', '#FF7043',
+    ];
+    const groupColorMap = {};
+    let colorIndex = 0;
+
+    Object.keys(groupDataMap).forEach(groupName => {
+        groupColorMap[groupName] = colorPalette[colorIndex % colorPalette.length];
+        colorIndex++;
+    });
+
+    // Prepare axes labels
+    const taskCounts = Array.from(new Set(Object.values(groupDataMap).map(g => g.task_count))).sort((a, b) => a - b);
+    const loadCounts = Array.from(new Set(Object.values(groupDataMap).map(g => g.total_load))).sort((a, b) => b - a); // Descending for higher loads at top
+
+    // Map axes labels
+    const xLabels = taskCounts.map(count => `${count} Tasks`);
+    const yLabels = loadCounts.map(load => `Load ${load}`);
+
+    // Prepare data matrix
+    const dataMatrix = [];
+    Object.entries(groupDataMap).forEach(([groupName, groupData]) => {
+        const xIndex = taskCounts.indexOf(groupData.task_count);
+        const yIndex = loadCounts.indexOf(groupData.total_load); // Correct load mapping
+
+        dataMatrix.push({
+            x: xIndex,
+            y: yIndex,
+            v: 1, // Each group contributes one data point
+            groupName: groupName,
+            taskCount: groupData.task_count,
+            totalLoad: groupData.total_load,
+            backgroundColor: groupColorMap[groupName],
+        });
+    });
+
+    // Debugging
+    console.log('Task Counts:', taskCounts);
+    console.log('Load Counts:', loadCounts);
+    console.log('Data Matrix:', dataMatrix);
+
+    // Set up the canvas
+    const cellSize = 50;
+    const canvasWidth = cellSize * xLabels.length + 200;
+    const canvasHeight = cellSize * yLabels.length + 100;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    // Destroy previous chart if it exists
+    if (heatmapChart) heatmapChart.destroy();
+
+    // Create the heatmap chart
+    heatmapChart = new Chart(ctx, {
+        type: 'matrix',
+        data: {
             datasets: [{
-                data: activeTasks.map(task => task.estimated_load),
-                backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#dc3545', '#6610f2']
+                label: 'Load Count vs Amount of Tasks',
+                data: dataMatrix,
+                backgroundColor(context) {
+                    return context.raw.backgroundColor;
+                },
+                borderWidth: 1,
+                borderColor: 'white',
+                width: cellSize - 5,
+                height: cellSize - 5,
             }]
-        };
-    } else if (mode === 'groups') {
-        // Prepare data for groups
-        const groupData = activeTasks.reduce((acc, task) => {
-            if (!acc[task.group_name]) {
-                acc[task.group_name] = { group_id: task.group_id, load: 0 };
-            }
-            acc[task.group_name].load += task.estimated_load;
-            return acc;
-        }, {});
-
-        console.log("Group data for pie chart:", groupData); // Debugging grouped data
-
-        pieData = {
-            labels: Object.keys(groupData),
-            datasets: [{
-                data: Object.values(groupData).map(group => group.load),
-                backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#dc3545', '#6610f2']
-            }]
-        };
-    } else {
-        console.error("Invalid mode provided for pie chart");
-        return;
-    }
-
-    // Destroy previous chart instance if it exists
-    if (pieChart) pieChart.destroy();
-
-    // Create the new pie chart
-    pieChart = new Chart(ctx, {
-        type: 'pie',
-        data: pieData,
+        },
         options: {
-            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'category',
+                    labels: xLabels,
+                    title: {
+                        display: true,
+                        text: 'Amount of Tasks',
+                    },
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 0,
+                        minRotation: 0,
+                    },
+                },
+                y: {
+                    type: 'category',
+                    labels: yLabels,
+                    title: {
+                        display: true,
+                        text: 'Load Count',
+                    },
+                    ticks: {
+                        autoSkip: false,
+                    },
+                }
+            },
             plugins: {
-                legend: { position: 'top' },
+                legend: {
+                    display: true,
+                    labels: {
+                        generateLabels: function(chart) {
+                            return Object.keys(groupColorMap).map(groupName => ({
+                                text: groupName,
+                                fillStyle: groupColorMap[groupName],
+                                strokeStyle: groupColorMap[groupName],
+                                hidden: false,
+                                lineWidth: 0,
+                            }));
+                        },
+                    },
+                },
                 tooltip: {
                     callbacks: {
-                        label: (tooltipItem) => {
-                            const label = pieData.labels[tooltipItem.dataIndex];
-                            const value = pieData.datasets[0].data[tooltipItem.dataIndex];
-                            return `${label}: ${value}`;
+                        label: context => {
+                            const dataPoint = context.dataset.data[context.dataIndex];
+                            return `${dataPoint.groupName}: ${dataPoint.taskCount} tasks, Load ${dataPoint.totalLoad}`;
                         }
                     }
                 }
@@ -580,6 +400,189 @@ function showGroupDetailsModal(groupName, tasks) {
     });
 }
 
+
+
+
+
+
+
+
+
+function showRadarChartView(mode) {
+    const tasks = <?php echo json_encode($tasks); ?>;
+    const ctx = document.getElementById("radarChart").getContext("2d");
+
+    // Destroy previous chart if it exists
+    if (radarChart) radarChart.destroy();
+
+    // Prepare data for radar chart by grouping tasks
+    const groupDataMap = {};
+
+    tasks.forEach(task => {
+        const groupName = task.group_name || 'Personal';
+        if (!groupDataMap[groupName]) {
+            groupDataMap[groupName] = { totalLoad: 0 };
+        }
+        groupDataMap[groupName].totalLoad += parseFloat(task.estimated_load);
+    });
+
+    // Prepare labels and data
+    const labels = Object.keys(groupDataMap); // Group names
+    const dataValues = Object.values(groupDataMap).map(group => group.totalLoad); // Total load per group
+
+    // Sort groups by total load in descending order for better readability
+    const sortedData = labels
+        .map((label, index) => ({ label, load: dataValues[index] }))
+        .sort((a, b) => b.load - a.load)
+        .slice(0, 12); // Limit to top 12 groups for readability
+
+    const sortedLabels = sortedData.map(item => item.label);
+    const sortedDataValues = sortedData.map(item => item.load);
+
+    // Create the radar chart
+    radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: sortedLabels, // Group names as labels
+            datasets: [{
+                label: 'Total Load per Group',
+                data: sortedDataValues, // Total loads as data
+                backgroundColor: 'rgba(75, 192, 192, 0.2)', // Light teal
+                borderColor: 'rgba(75, 192, 192, 1)', // Darker teal
+                borderWidth: 1,
+                pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(75, 192, 192, 1)',
+            }]
+        },
+        options: {
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    pointLabels: {
+                        font: {
+                            size: 14,
+                        },
+                    },
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const group = sortedData[context.dataIndex];
+                            return `${group.label}: Total Load ${group.load}`;
+                        }
+                    }
+                },
+                legend: {
+                    display: true, // Enable legend for group visualization
+                }
+            }
+        }
+    });
+}
+
+
+function showScatterChartView(mode) {
+    const tasks = <?php echo json_encode($tasks); ?>;
+    const ctx = document.getElementById("scatterChart").getContext("2d");
+
+    // Destroy previous chart if it exists
+    if (scatterChart) scatterChart.destroy();
+
+    // Aggregate data by groups
+    const groupDataMap = {};
+
+    tasks.forEach(task => {
+        const groupName = task.group_name || 'Personal';
+        if (!groupDataMap[groupName]) {
+            groupDataMap[groupName] = { totalLoad: 0, taskCount: 0 };
+        }
+        groupDataMap[groupName].totalLoad += parseFloat(task.estimated_load);
+        groupDataMap[groupName].taskCount += 1;
+    });
+
+    // Assign unique colors to groups
+    const colorPalette = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+        '#FF9F40', '#E7E9ED', '#B39DDB', '#9CCC65', '#FF7043'
+    ];
+    const groupColorMap = {};
+    let colorIndex = 0;
+
+    Object.keys(groupDataMap).forEach(groupName => {
+        groupColorMap[groupName] = colorPalette[colorIndex % colorPalette.length];
+        colorIndex++;
+    });
+
+    // Prepare data for scatter chart
+    const scatterData = Object.entries(groupDataMap).map(([groupName, groupData]) => ({
+        x: groupName, // Group Name
+        y: groupData.totalLoad, // Total Load
+        r: groupData.taskCount * 5, // Bubble size based on number of tasks (adjust multiplier as needed)
+        groupName: groupName,
+        taskCount: groupData.taskCount,
+        totalLoad: groupData.totalLoad,
+        backgroundColor: groupColorMap[groupName],
+    }));
+
+    // Create legend items for groups
+    const legendItems = Object.entries(groupColorMap).map(([groupName, color]) => ({
+        text: groupName,
+        fillStyle: color,
+    }));
+
+    // Create the scatter chart
+    scatterChart = new Chart(ctx, {
+        type: 'bubble',
+        data: {
+            datasets: [{
+                label: 'Groups',
+                data: scatterData,
+                backgroundColor: scatterData.map(point => point.backgroundColor),
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'category',
+                    labels: Object.keys(groupDataMap), // Group Names
+                    title: {
+                        display: true,
+                        text: 'Groups',
+                    },
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Total Estimated Load',
+                    },
+                    beginAtZero: true,
+                },
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        generateLabels: function(chart) {
+                            return legendItems;
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const dataPoint = context.raw;
+                            return `${dataPoint.groupName}: ${dataPoint.taskCount} tasks, Total Load ${dataPoint.totalLoad}`;
+                        },
+                    },
+                },
+            },
+        },
+    });
+}
 
 
     function updateProgressBar(loadPercentage) {
@@ -604,99 +607,31 @@ function showGroupDetailsModal(groupName, tasks) {
         }
     }
 
-    function highlightOverdueTasks() {
-        const taskItems = document.querySelectorAll(".task-item");
-
-        if (!taskItems) {
-            console.error("Task items not found!");
-            return;
-        }
-
-        // Get the current date and time
-        const now = new Date();
-
-        // Loop through each task item
-        taskItems.forEach(taskItem => {
-            // Extract the due date from the task's data attribute or inner HTML
-            const dueDateElement = taskItem.querySelector(".task-info small");
-            if (dueDateElement) {
-                const dueDateText = dueDateElement.textContent.replace("Due: ", "");
-                const dueDate = new Date(dueDateText);
-
-
-            }
-        });
-    }
-
-
-
     document.addEventListener('DOMContentLoaded', () => {
-        // Default to List View and Tasks mode
-        showView('listView');
-        showListView('groups');
+        // Default to Heatmap View
+        showView('heatmapView');
 
-        // Example: Use PHP to pass the load_percentage to JavaScript
-        const progressBar = document.getElementById("loadProgressBar");
+        // Update the progress bar
         const loadPercentage = <?php echo round($load_percentage); ?>;
-
-        // Call the updateProgressBar function with the initial load percentage
         updateProgressBar(loadPercentage);
 
-        if (progressBar) {
-            progressBar.addEventListener("click", () => {
-                window.location.href = "index.php?page=pastLoad";
-            });
-        }
         // Event listeners for switching between views
-        document.getElementById('listViewButton').addEventListener('click', () => showView('listView'));
-        document.getElementById('pieChartViewButton').addEventListener('click', () => showView('pieChartView'));
-
-        // Event listeners for toggling tasks and groups in List View
-        document.getElementById('taskListButton').addEventListener('click', () => {
-            console.log("Switching to Task View in List Chart");
-            showListView('tasks')
-        });
-        document.getElementById('groupListButton').addEventListener('click', () => showListView('groups'));
-
-        // Event listeners for toggling tasks and groups in Pie Chart View
-        document.getElementById('taskListButton').addEventListener('click', () => {
-            showListView('tasks');
-            showPieChart('tasks');
-            showBubbleChart('tasks');
-        });
-        document.getElementById('groupListButton').addEventListener('click', () => {
-            showListView('groups');
-            showPieChart('groups');
-            showBubbleChart('groups');
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            showView('listView');
-            showListView('tasks');
-        });
-
-        highlightOverdueTasks();
+        document.getElementById('heatmapViewButton').addEventListener('click', () => showView('heatmapView'));
+        document.getElementById('radarChartViewButton').addEventListener('click', () => showView('radarChartView'));
+        document.getElementById('scatterChartViewButton').addEventListener('click', () => showView('scatterChartView'));
     });
-
 </script>
 
+<!-- Include necessary Chart.js libraries -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@1.1.0/dist/chartjs-chart-matrix.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 
 <style>
-    .task-item:hover {
-        background-color: #e9ecef; /* Light grey hover */
-        color: inherit;
-        cursor: pointer;
-    }
-    .group-item:hover {
-        background-color: #e9ecef;
-    }
-
     .hidden {
         display: none !important;
     }
+
     .visible {
         display: block !important;
     }
@@ -708,11 +643,6 @@ function showGroupDetailsModal(groupName, tasks) {
     .bg-success {
         background-color: #28a745 !important;
         color: white;
-    }
-
-    .task-item:hover {
-        background-color: #e9ecef;
-        cursor: pointer;
     }
 
     .btn-uniform {
@@ -730,4 +660,13 @@ function showGroupDetailsModal(groupName, tasks) {
         flex-grow: 1; /* Ensures buttons expand equally */
     }
 
+    #heatmapView {
+        overflow: auto;
+        max-height: 100%; /* Adjust height as necessary */
+    }
+
+    #heatmapChart {
+        width: 1000px; /* Adjust width as necessary */
+        height: 1000px; /* Adjust height as necessary */
+    }
 </style>
