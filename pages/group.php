@@ -7,7 +7,7 @@ if (!isset($_GET['id'])) {
 $group_id = $_GET['id'];
 
 // Fetch group details
-$sql = "SELECT g.* FROM groups_with_coins g WHERE group_id = ?";
+$sql = "SELECT g.* FROM groups g WHERE group_id = ?";
 $stmt = $dbconnection->prepare($sql);
 $stmt->execute([$group_id]);
 $group = $stmt->fetch();
