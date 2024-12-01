@@ -10,4 +10,12 @@ $group_id = $_GET['id'];
 $sql = "DELETE FROM groups WHERE group_id = ?";
 $stmt = $connection->prepare($sql);
 $stmt->execute([$group_id]);
+
+$sql = "DELETE FROM group_tasks WHERE group_id = ?";
+$stmt = $connection->prepare($sql);
+$stmt->execute([$group_id]);
+
+$sql = "DELETE FROM group_coins WHERE group_id = ?";
+$stmt = $connection->prepare($sql);
+$stmt->execute([$group_id]);
 header("Location: ../../index.php?page=manage");
