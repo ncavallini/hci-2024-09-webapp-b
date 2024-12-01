@@ -163,9 +163,7 @@ try {
             <div class="d-flex flex-column gap-3 mb-3">
                 <!-- Static Buttons Row -->
                 <div class="d-flex flex-wrap gap-2">
-                    <a class="nav-link" href="index.php?page=visualize">
-                        <button id="taskListButton" class="btn btn-secondary" onclick="showListView('tasks')">Tasks</button>
-                    </a>
+                    <button id="taskListButton" class="btn btn-secondary" onclick="window.location.href='index.php?page=visualize'">Tasks</button>
                     <button id="groupButton" class="btn btn-primary">Groups</button>
                     <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
                     <button id="radarChartViewButton" class="btn btn-secondary" onclick="showView('radarChartView')">Radar Chart View</button>
@@ -187,7 +185,7 @@ try {
                 </div>
             </div>
 
-
+<div class="flex-grow-1">
             <!-- Heatmap View -->
             <div id="heatmapView" style="display: none;">
                 <canvas id="heatmapChart" width="400" height="400"></canvas>
@@ -201,6 +199,7 @@ try {
             <!-- Scatter Chart View -->
             <div id="scatterChartView" style="display: none;">
                 <canvas id="scatterChart" width="400" height="400"></canvas>
+            </div>
             </div>
         </div>
     </div>

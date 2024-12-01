@@ -120,7 +120,7 @@ try {
                 <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
             </div>
         </div>
-
+<div class="flex-grow-1">
         <!-- Heatmap View -->
         <div id="heatmapView" style="display: none;">
             <canvas id="heatmapChart" width="400" height="400"></canvas>
@@ -134,6 +134,7 @@ try {
         <!-- Scatter Chart View -->
         <div id="scatterChartView" style="display: none;">
             <canvas id="scatterChart" width="400" height="400"></canvas>
+        </div>
         </div>
     </div>
 

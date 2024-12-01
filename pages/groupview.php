@@ -158,64 +158,43 @@ foreach ($user_loads as $user) {
         </div>
         <p class="mt-2">Current Load: <?php echo $total_load; ?> / Maximum Load: <?php echo $max_load; ?></p>
     </div>
-
+    <div class="d-flex flex-row align-items-start gap-3">
+    <!-- Buttons Section -->
+    <div class="d-flex flex-column gap-3" style="width: 20%;">
         <!-- Buttons for List and Pie Chart Views -->
-        <div class="d-flex justify-content-between mb-3">
-            <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
-            <button id="radarChartViewButton" class="btn btn-secondary" onclick="showView('radarChartView')">Radar Chart View</button>
-            <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
-    </div>
-
-    <!-- Heatmap View -->
-    <div id="heatmapView" style="display: none;">
-        <canvas id="heatmapChart" width="400" height="400"></canvas>
-    </div>
-
-    <!-- Radar Chart View -->
-    <div id="radarChartView" style="display: none;">
-        <canvas id="radarChart" width="400" height="400"></canvas>
-    </div>
-
-    <!-- Scatter Chart View -->
-    <div id="scatterChartView" style="display: none;">
-        <canvas id="scatterChart" width="400" height="400"></canvas>
-    </div>
-
-    <!-- Task Details Modal -->
-    <div class="modal fade" id="taskDetailsModal" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Task Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>Title:</strong> <span id="taskTitle"></span></p>
-                    <p><strong>Description:</strong> <span id="taskDescription"></span></p>
-                    <p><strong>Location:</strong> <span id="taskLocation"></span></p>
-                    <p><strong>Due Date:</strong> <span id="taskDueDate"></span></p>
-                    <p><strong>Estimated Load:</strong> <span id="taskEstimatedLoad"></span></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
+        <div class="d-flex flex-column gap-2">
+            <button id="heatmapViewButton" class="btn btn-primary w-100" onclick="showView('heatmapView')">Heatmap View</button>
+            <button id="radarChartViewButton" class="btn btn-secondary w-100" onclick="showView('radarChartView')">Radar Chart View</button>
+            <button id="scatterChartViewButton" class="btn btn-secondary w-100" onclick="showView('scatterChartView')">Scatter Chart View</button>
         </div>
     </div>
 
-</div>
+    <!-- Graph Views Section -->
+    <div class="flex-grow-1">
+        <!-- Heatmap View -->
+        <div id="heatmapView" style="display: none;">
+            <canvas id="heatmapChart" width="400" height="400"></canvas>
+        </div>
 
-    <title>Group Mental Load Comparison</title>
-    <div class="container mt-5">
-    <h1 class="mb-4">Group Mental Load Comparison</h1>
+        <!-- Radar Chart View -->
+        <div id="radarChartView" style="display: none;">
+            <canvas id="radarChart" width="400" height="400"></canvas>
+        </div>
 
-    <!-- Bar Chart -->
-    <div>
-        <canvas id="compareChart" width="400" height="200"></canvas>
-        
+        <!-- Scatter Chart View -->
+        <div id="scatterChartView" style="display: none;">
+            <canvas id="scatterChart" width="400" height="400"></canvas>
+        </div>
+
+        <!-- Bar Chart -->
+        <div id="barChartView">
+            <h1 class="mb-4">Group Mental Load Comparison</h1>
+            <canvas id="compareChart" width="600" height="400"></canvas>
+        </div>
     </div>
 </div>
 
+</div>
 
 
     <script>
