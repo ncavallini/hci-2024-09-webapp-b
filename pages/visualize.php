@@ -83,15 +83,17 @@ try {
 ?>
 
 <div class="container mt-5">
-    <h1 class="mb-4">All Tasks</h1>
+    <h1 class="mb-4 text-center">All Tasks</h1>
     <!-- Mental Load Bar -->
-    <div class="mb-4 position-relative">
-        <h5>Your Mental Load
-            <a class= "nav-link" href="index.php?page=pastLoad"> 
-                <button 
-                    class="btn btn-sm btn-info position-absolute top-0 end-0" >
-                    Past Mental Load
-                </button>
+    <div class="row mb-4 position-relative">
+        <div class="col-12">
+            <h5>Your Mental Load
+                <a class="nav-link d-inline" href="index.php?page=pastLoad">
+                    <button class="btn btn-sm btn-info float-end">
+                        Past Mental Load
+                    </button>
+                </a>
+            </h5>
             </a>
         </h5>
         <div class="progress mt-3">
@@ -110,9 +112,8 @@ try {
     </div>
     <div class = "d-flex flex-row align-items-center">
         <!-- Buttons Row -->
-        <div class="d-flex flex-column justify-content-between mb-3 gap-2" style="width: 20%;">
-            <!-- Left-aligned Task/Group Buttons -->
-            <div class="d-flex flex-wrap gap-2">
+        <div class="row mb-3">
+            <div class="col-12 d-flex flex-wrap justify-content-center gap-2">
                 <button id="taskListButton" class="btn btn-primary" onclick="showListView('tasks')">Tasks</button>
                 <button id="groupListButton" class="btn btn-secondary" onclick="window.location.href='index.php?page=groupViewing'">Groups</button>
                 <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
@@ -120,21 +121,24 @@ try {
                 <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
             </div>
         </div>
-<div class="flex-grow-1">
-        <!-- Heatmap View -->
-        <div id="heatmapView" style="display: none;">
-            <canvas id="heatmapChart" width="400" height="400"></canvas>
-        </div>
 
-        <!-- Radar Chart View -->
-        <div id="radarChartView" style="display: none;">
-            <canvas id="radarChart" width="400" height="400"></canvas>
-        </div>
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-12">
+            <!-- Heatmap View -->
+            <div id="heatmapView" class="chart-container">
+                <canvas id="heatmapChart"></canvas>
+            </div>
 
-        <!-- Scatter Chart View -->
-        <div id="scatterChartView" style="display: none;">
-            <canvas id="scatterChart" width="400" height="400"></canvas>
-        </div>
+            <!-- Radar Chart View -->
+            <div id="radarChartView" class="chart-container" style="display: none;">
+                <canvas id="radarChart"></canvas>
+            </div>
+
+            <!-- Scatter Chart View -->
+            <div id="scatterChartView" class="chart-container" style="display: none;">
+                <canvas id="scatterChart"></canvas>
+            </div>
         </div>
     </div>
 
@@ -324,6 +328,7 @@ try {
                 }]
             },
             options: {
+                responsive: true,
                 maintainAspectRatio: false, // Allow chart to resize based on container
                 scales: {
                     x: {
@@ -661,4 +666,16 @@ try {
         width: 1000px; /* Adjust width as necessary */
         height: 1000px; /* Adjust height as necessary */
     }
+
+    .chart-container {
+        position: relative;
+        width: 100%;
+        height: 60vh; /* Adjust height as needed */
+    }
+
+    .btn-uniform {
+        flex: 1;
+        min-width: 100px;
+    }
+
 </style>
