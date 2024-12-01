@@ -108,36 +108,33 @@ try {
         </div>
         <p class="mt-2">Current Load: <?php echo $total_load; ?> / Maximum Load: <?php echo $max_load; ?></p>
     </div>
-
-    <!-- Buttons Row -->
-    <div class="d-flex justify-content-between mb-3 gap-2">
-        <!-- Left-aligned Task/Group Buttons -->
-        <div class="d-flex flex-wrap gap-2">
-            <button id="taskListButton" class="btn btn-primary" onclick="showListView('tasks')">Tasks</button>
-            <a class="nav-link" href="index.php?page=groupViewing"><button id="groupListButton" class="btn btn-secondary" onclick="showListView('groups')">Groups</button></a>    
+    <div class = "d-flex flex-row align-items-center">
+        <!-- Buttons Row -->
+        <div class="d-flex flex-column justify-content-between mb-3 gap-2" style="width: 20%;">
+            <!-- Left-aligned Task/Group Buttons -->
+            <div class="d-flex flex-wrap gap-2">
+                <button id="taskListButton" class="btn btn-primary" onclick="showListView('tasks')">Tasks</button>
+                <button id="groupListButton" class="btn btn-secondary" onclick="window.location.href='index.php?page=groupViewing'">Groups</button>
+                <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
+                <button id="radarChartViewButton" class="btn btn-secondary" onclick="showView('radarChartView')">Radar Chart View</button>
+                <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
+            </div>
         </div>
 
-        <!-- Right-aligned View Buttons -->
-        <div class="d-flex flex-wrap gap-2">
-            <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
-            <button id="radarChartViewButton" class="btn btn-secondary" onclick="showView('radarChartView')">Radar Chart View</button>
-            <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
+        <!-- Heatmap View -->
+        <div id="heatmapView" style="display: none;">
+            <canvas id="heatmapChart" width="400" height="400"></canvas>
         </div>
-    </div>
 
-    <!-- Heatmap View -->
-    <div id="heatmapView" style="display: none;">
-        <canvas id="heatmapChart" width="400" height="400"></canvas>
-    </div>
+        <!-- Radar Chart View -->
+        <div id="radarChartView" style="display: none;">
+            <canvas id="radarChart" width="400" height="400"></canvas>
+        </div>
 
-    <!-- Radar Chart View -->
-    <div id="radarChartView" style="display: none;">
-        <canvas id="radarChart" width="400" height="400"></canvas>
-    </div>
-
-    <!-- Scatter Chart View -->
-    <div id="scatterChartView" style="display: none;">
-        <canvas id="scatterChart" width="400" height="400"></canvas>
+        <!-- Scatter Chart View -->
+        <div id="scatterChartView" style="display: none;">
+            <canvas id="scatterChart" width="400" height="400"></canvas>
+        </div>
     </div>
 
     <!-- Task Details Modal -->
