@@ -131,79 +131,79 @@ try {
 }
 ?>
 
-<div class="container mt-5">
-    <h1 class="mb-4">All Tasks</h1>
+    <div class="container mt-5">
+        <h1 class="mb-4">All Tasks</h1>
 
-    <div class="mb-4 position-relative">
-        <h5>Your Mental Load
-            <a class="nav-link" href="index.php?page=pastLoad"> 
-                <button 
-                    class="btn btn-sm btn-info position-absolute top-0 end-0" >
-                    Past Mental Load
-                </button>
-            </a>
-        </h5>
-        <div class="progress mt-3">
-            <div 
-                class="progress-bar" 
-                id="loadProgressBar" 
-                role="progressbar" 
-                style="width: <?php echo $load_percentage; ?>%;" 
-                aria-valuenow="<?php echo $total_load; ?>" 
-                aria-valuemin="0" 
-                aria-valuemax="<?php echo $max_load; ?>">
-                <?php echo round($load_percentage); ?>%
+        <div class="mb-4 position-relative">
+            <h5>Your Mental Load
+                <a class="nav-link" href="index.php?page=pastLoad"> 
+                    <button 
+                        class="btn btn-sm btn-info position-absolute top-0 end-0" >
+                        Past Mental Load
+                    </button>
+                </a>
+            </h5>
+            <div class="progress mt-3">
+                <div 
+                    class="progress-bar" 
+                    id="loadProgressBar" 
+                    role="progressbar" 
+                    style="width: <?php echo $load_percentage; ?>%;" 
+                    aria-valuenow="<?php echo $total_load; ?>" 
+                    aria-valuemin="0" 
+                    aria-valuemax="<?php echo $max_load; ?>">
+                    <?php echo round($load_percentage); ?>%
+                </div>
+            </div>
+            <p class="mt-2">Current Load: <?php echo $total_load; ?> / Maximum Load: <?php echo $max_load; ?></p>
+        </div>
+
+        <!-- Buttons Row -->
+        <div class = "d-flex flex-row align-items-center">
+            <div class="d-flex flex-column gap-3 mb-3">
+                <!-- Static Buttons Row -->
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="nav-link" href="index.php?page=visualize">
+                        <button id="taskListButton" class="btn btn-secondary" onclick="showListView('tasks')">Tasks</button>
+                    </a>
+                    <button id="groupButton" class="btn btn-primary">Groups</button>
+                    <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
+                    <button id="radarChartViewButton" class="btn btn-secondary" onclick="showView('radarChartView')">Radar Chart View</button>
+                    <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
+                </div>
+
+                <!-- Dynamically Generated Group Buttons -->
+                <div class="d-flex flex-wrap gap-2">
+                    <?php foreach ($groupTasks as $groupTask): ?>
+                        <?php if (!isset($groupsAdded[$groupTask['group_name']])): ?>
+                            <?php $groupsAdded[$groupTask['group_name']] = true; ?>
+                            <button class="btn btn-outline-primary btn-sm" onclick="navigateToGroup(<?php echo $groupTask['group_id']; ?>)">
+                                View <?php echo htmlspecialchars($groupTask['group_name']); ?>
+                            </button>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                    <!-- Add Personal group button -->
+                    <button class="btn btn-outline-primary btn-sm" onclick="navigateToPersonalGroup()">View Personal</button>
+                </div>
+            </div>
+
+
+            <!-- Heatmap View -->
+            <div id="heatmapView" style="display: none;">
+                <canvas id="heatmapChart" width="400" height="400"></canvas>
+            </div>
+
+            <!-- Radar Chart View -->
+            <div id="radarChartView" style="display: none;">
+                <canvas id="radarChart" width="400" height="400"></canvas>
+            </div>
+
+            <!-- Scatter Chart View -->
+            <div id="scatterChartView" style="display: none;">
+                <canvas id="scatterChart" width="400" height="400"></canvas>
             </div>
         </div>
-        <p class="mt-2">Current Load: <?php echo $total_load; ?> / Maximum Load: <?php echo $max_load; ?></p>
     </div>
-
-    <!-- Buttons Row -->
-    <div class="d-flex justify-content-between mb-3 gap-2">
-        <!-- Left-aligned Group Button -->
-        <div class="d-flex flex-wrap gap-2">
-            <a class="nav-link" href="index.php?page=visualize"><button id="taskListButton" class="btn btn-secondary" onclick="showListView('tasks')">Tasks</button></a>
-            <button id="groupButton" class="btn btn-primary">Groups</button>
-        </div>
-
-        <!-- Right-aligned View Buttons -->
-        <div class="d-flex flex-wrap gap-2">
-            <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
-            <button id="radarChartViewButton" class="btn btn-secondary" onclick="showView('radarChartView')">Radar Chart View</button>
-            <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
-        </div>
-    </div>
-
-    <!-- Dynamic Group Buttons -->
-    <div id="groupButtonsContainer" class="d-flex flex-wrap gap-2 mt-3">
-        <?php foreach ($groupTasks as $groupTask): ?>
-            <?php if (!isset($groupsAdded[$groupTask['group_name']])): ?>
-                <?php $groupsAdded[$groupTask['group_name']] = true; ?>
-                <button class="btn btn-outline-primary btn-sm" onclick="navigateToGroup(<?php echo $groupTask['group_id']; ?>)">
-                    View <?php echo htmlspecialchars($groupTask['group_name']); ?>
-                </button>
-            <?php endif; ?>
-        <?php endforeach; ?>
-        <!-- Add Personal group button -->
-        <button class="btn btn-outline-primary btn-sm" onclick="navigateToPersonalGroup()">View Personal</button>
-    </div>
-
-    <!-- Heatmap View -->
-    <div id="heatmapView" style="display: none;">
-        <canvas id="heatmapChart" width="400" height="400"></canvas>
-    </div>
-
-    <!-- Radar Chart View -->
-    <div id="radarChartView" style="display: none;">
-        <canvas id="radarChart" width="400" height="400"></canvas>
-    </div>
-
-    <!-- Scatter Chart View -->
-    <div id="scatterChartView" style="display: none;">
-        <canvas id="scatterChart" width="400" height="400"></canvas>
-    </div>
-</div>
-
 <script>
     let heatmapChart;
     let radarChart;
