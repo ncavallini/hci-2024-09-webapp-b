@@ -16,7 +16,9 @@
 $sql = "
     (SELECT 
         t.task_id, 
-        t.title, 
+        t.title,
+        t.due_date,
+        t.is_completed,
         0 AS group_id, 
         NULL AS group_name 
      FROM 
@@ -29,7 +31,9 @@ $sql = "
     UNION ALL
     (SELECT 
         gt.group_task_id, 
-        gt.title, 
+        gt.title,
+        gt.due_date,
+        gt.is_completed,
         gt.group_id, 
         g.name AS group_name 
      FROM 
@@ -60,10 +64,22 @@ foreach ($tasks as $task) {
     echo "<li class='list-group-item'>{$task['title']} &nbsp;&nbsp;";
     if ($task['group_id'] != 0) {
         echo "<span class='badge bg-secondary rounded-pill'>{$task['group_name']}</span>";
+        echo "<span class='text-muted ms-3'>Due: " . date("M d, Y", strtotime($task['due_date'])) . "</span>";
         echo "<div style='float:right'><a class='btn btn-sm btn-outline-primary' href='index.php?page=survey&task_id=".$task['task_id']."&group=".$task['group_id']."&onD=1'><i class='fa fa-check-square-o'></i></a></div>";
+        //checkbox
+        echo "<input type='checkbox' class='form-check-input me-2' style='float:right'";
+        echo $task['is_completed'] ? "checked" : "";
+        echo " onclick=\"window.location.href='./actions/tasks/toggle_completed_backTOdahboard.php?group_id={$task['group_id']}&task_id={$task['task_id']}'\">";
+        //checkbox
     } else {
         echo "<span class='badge bg-primary rounded-pill'>Personal</span>";
+        echo "<span class='text-muted ms-3'>Due: " . date("M d, Y", strtotime($task['due_date'])) . "</span>";
         echo "<div style='float:right'><a class='btn btn-sm btn-outline-primary' href='index.php?page=survey&task_id=".$task['task_id']."&group=".$task['group_id']."&onD=1'><i class='fa fa-check-square-o'></i></a></div>";
+        //checkbox
+        echo "<input type='checkbox' class='form-check-input me-2' style='float:right'";
+        echo $task['is_completed'] ? "checked" : "";
+        echo " onclick=\"window.location.href='./actions/tasks/toggle_completed_backTOdahboard.php?group_id={$task['group_id']}&task_id={$task['task_id']}'\">";
+        //checkbox
     }
     echo "</li>";
 }
