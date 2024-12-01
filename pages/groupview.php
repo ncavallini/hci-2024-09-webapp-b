@@ -158,7 +158,7 @@ foreach ($user_loads as $user) {
         </div>
         <p class="mt-2">Current Load: <?php echo $total_load; ?> / Maximum Load: <?php echo $max_load; ?></p>
     </div>
-    <div class="d-flex flex-row align-items-start gap-3">
+    <div class="d-flex flex-row align-items-center gap-3">
     <!-- Buttons Section -->
     <div class="d-flex flex-column gap-3" style="width: 20%;">
         <!-- Buttons for List and Pie Chart Views -->

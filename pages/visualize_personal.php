@@ -88,28 +88,33 @@ try {
             <p class="mt-2">Personal Tasks Load: <?php echo $total_load; ?> / Maximum Load: <?php echo $max_load; ?></p>
         </div>
 
-    <!-- Buttons Row -->
-    <div class="d-flex justify-content-between mb-3">
-            <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
-            <button id="radarChartViewButton" class="btn btn-secondary" onclick="showView('radarChartView')">Radar Chart View</button>
-            <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
-    </div>
+    <div class="d-flex flex-row align-items-center gap-3">
 
-    <!-- Heatmap View -->
-    <div id="heatmapView" style="display: none;">
-        <canvas id="heatmapChart" width="400" height="400"></canvas>
+    <div class="d-flex flex-column gap-3" style="width: 20%;">
+        <!-- Buttons Row -->
+        <div class="d-flex justify-content-between mb-3">
+                <button id="heatmapViewButton" class="btn btn-primary" onclick="showView('heatmapView')">Heatmap View</button>
+                <button id="radarChartViewButton" class="btn btn-secondary" onclick="showView('radarChartView')">Radar Chart View</button>
+                <button id="scatterChartViewButton" class="btn btn-secondary" onclick="showView('scatterChartView')">Scatter Chart View</button>
+        </div>
     </div>
-
-    <!-- Radar Chart View -->
-    <div id="radarChartView" style="display: none;">
-        <canvas id="radarChart" width="400" height="400"></canvas>
+    <div class="flex-grow-1">
+        <!-- Heatmap View -->
+        <div id="heatmapView" style="display: none;">
+            <canvas id="heatmapChart" width="400" height="400"></canvas>
+        </div>
+        
+        <!-- Radar Chart View -->
+        <div id="radarChartView" style="display: none;">
+            <canvas id="radarChart" width="400" height="400"></canvas>
+        </div>
+        
+        <!-- Scatter Chart View -->
+        <div id="scatterChartView" style="display: none;">
+            <canvas id="scatterChart" width="400" height="400"></canvas>
+        </div>
     </div>
-
-    <!-- Scatter Chart View -->
-    <div id="scatterChartView" style="display: none;">
-        <canvas id="scatterChart" width="400" height="400"></canvas>
-    </div>
-
+</div>
     <!-- Task Details Modal -->
     <div class="modal fade" id="taskDetailsModal" tabindex="-1" aria-labelledby="taskDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

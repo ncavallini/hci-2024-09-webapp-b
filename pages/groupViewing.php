@@ -172,6 +172,7 @@ try {
 
                 <!-- Dynamically Generated Group Buttons -->
                 <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="navigateToPersonalGroup()">View Personal</button>
                     <?php foreach ($groupTasks as $groupTask): ?>
                         <?php if (!isset($groupsAdded[$groupTask['group_name']])): ?>
                             <?php $groupsAdded[$groupTask['group_name']] = true; ?>
@@ -181,7 +182,6 @@ try {
                         <?php endif; ?>
                     <?php endforeach; ?>
                     <!-- Add Personal group button -->
-                    <button class="btn btn-outline-primary btn-sm" onclick="navigateToPersonalGroup()">View Personal</button>
                 </div>
             </div>
 
