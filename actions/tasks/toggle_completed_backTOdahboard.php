@@ -25,7 +25,7 @@ if ($group_id == 0) {
     $estimated_load = $stmt->fetchColumn();
 
     $sql = "UPDATE tasks SET is_completed = NOT is_completed, completed_at = NOW() WHERE task_id = ?";
-    $location = "../../index.php?page=survey&task_id={$task_id}&group=0";
+    $location = "../../index.php?page=survey_dashy&task_id={$task_id}&group=0";
 } else {
     // Group task
     $sql = "SELECT estimated_load FROM group_tasks WHERE group_task_id = ?";
@@ -34,7 +34,7 @@ if ($group_id == 0) {
     $estimated_load = $stmt->fetchColumn();
 
     $sql = "UPDATE group_tasks SET is_completed = NOT is_completed, completed_at = NOW() WHERE group_task_id = ?";
-    $location = "../../index.php?page=survey&task_id={$task_id}&group={$group_id}";
+    $location = "../../index.php?page=survey_dashy&task_id={$task_id}&group={$group_id}";
 }
 
 // Execute the update query
