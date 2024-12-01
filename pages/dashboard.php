@@ -88,6 +88,88 @@ end_task_due:
 </div>
 <p>&nbsp;&nbsp;</p>
 
+<div class="card">
+  <div class="card-header">
+  <div class="card-title h5"><i>Overdue</i> tasks</div>
+  </div>
+  <div class="card-body">
+  <?php
+// SQL query to fetch all tasks that are not overdue and not completed
+$sql = "
+    (SELECT 
+        t.task_id, 
+        t.title,
+        t.due_date,
+        t.is_completed,
+        0 AS group_id, 
+        NULL AS group_name 
+     FROM 
+        tasks t 
+     WHERE 
+        DATE(due_date) < CURRENT_DATE 
+        AND user_id = :user_id 
+        AND is_completed = 0
+    )
+    UNION ALL
+    (SELECT 
+        gt.group_task_id, 
+        gt.title,
+        gt.due_date,
+        gt.is_completed,
+        gt.group_id, 
+        g.name AS group_name 
+     FROM 
+        group_tasks gt 
+     JOIN 
+        groups g USING(group_id) 
+     WHERE 
+        DATE(due_date) < CURRENT_DATE 
+        AND user_id = :user_id 
+        AND is_completed = 0
+    )";
+
+$stmt = $dbconnection->prepare($sql);
+$stmt->bindValue(":user_id", Auth::user()['user_id']);
+$stmt->execute();
+
+$tasks = $stmt->fetchAll();
+
+// If no tasks found, display a message
+if (count($tasks) == 0) {
+    echo "<p class='text-center'>No incomplete tasks are due or upcoming</p>";
+    goto end_task_due2;
+}
+
+// Display the tasks in a list
+echo '<ul class="list-group list-group-flush">';
+foreach ($tasks as $task) {
+    echo "<li class='list-group-item rounded' style='background-color: lightcoral;'>{$task['title']} &nbsp;&nbsp;";
+    if ($task['group_id'] != 0) {
+        echo "<span class='badge bg-secondary rounded-pill'>{$task['group_name']}</span>";
+        echo "<span class='text-muted ms-3'>Due: " . date("M d, Y", strtotime($task['due_date'])) . "</span>";
+        //checkbox
+        echo "<input type='checkbox' class='form-check-input me-2' style='float:right'";
+        echo $task['is_completed'] ? "checked" : "";
+        echo " onclick=\"window.location.href='./actions/tasks/toggle_completed_backTOdahboard.php?group_id={$task['group_id']}&task_id={$task['task_id']}'\">";
+        //checkbox
+    } else {
+        echo "<span class='badge bg-primary rounded-pill'>Personal</span>";
+        echo "<span class='text-muted ms-3'>Due: " . date("M d, Y", strtotime($task['due_date'])) . "</span>";
+        //checkbox
+        echo "<input type='checkbox' class='form-check-input me-2' style='float:right'";
+        echo $task['is_completed'] ? "checked" : "";
+        echo " onclick=\"window.location.href='./actions/tasks/toggle_completed_backTOdahboard.php?group_id={$task['group_id']}&task_id={$task['task_id']}'\">";
+        //checkbox
+    }
+    echo "</li>";
+}
+end_task_due2:
+?>
+
+  </div>
+</div>
+
+<p>&nbsp;&nbsp;</p>
 
 <?php 
 $query = "SELECT m.group_id, g.name FROM membership m JOIN groups g ON m.group_id = g.group_id WHERE m.username = ?";
