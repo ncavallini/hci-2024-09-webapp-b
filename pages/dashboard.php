@@ -65,7 +65,6 @@ foreach ($tasks as $task) {
     if ($task['group_id'] != 0) {
         echo "<span class='badge bg-secondary rounded-pill'>{$task['group_name']}</span>";
         echo "<span class='text-muted ms-3'>Due: " . date("M d, Y", strtotime($task['due_date'])) . "</span>";
-        echo "<div style='float:right'><a class='btn btn-sm btn-outline-primary' href='index.php?page=survey&task_id=".$task['task_id']."&group=".$task['group_id']."&onD=1'><i class='fa fa-check-square-o'></i></a></div>";
         //checkbox
         echo "<input type='checkbox' class='form-check-input me-2' style='float:right'";
         echo $task['is_completed'] ? "checked" : "";
@@ -74,7 +73,6 @@ foreach ($tasks as $task) {
     } else {
         echo "<span class='badge bg-primary rounded-pill'>Personal</span>";
         echo "<span class='text-muted ms-3'>Due: " . date("M d, Y", strtotime($task['due_date'])) . "</span>";
-        echo "<div style='float:right'><a class='btn btn-sm btn-outline-primary' href='index.php?page=survey&task_id=".$task['task_id']."&group=".$task['group_id']."&onD=1'><i class='fa fa-check-square-o'></i></a></div>";
         //checkbox
         echo "<input type='checkbox' class='form-check-input me-2' style='float:right'";
         echo $task['is_completed'] ? "checked" : "";
