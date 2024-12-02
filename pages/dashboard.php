@@ -1,9 +1,198 @@
+<?php
+// Fetch survey and task data
+$sql = "
+  SELECT t.title AS task_name,
+    s.ans1, s.ans2, s.ans3, s.ans4
+  FROM surveys s
+  JOIN tasks t ON s.task_id = t.task_id
+  WHERE s.user_id = :user_id
+";
+$stmt = $dbconnection->prepare($sql);
+$stmt->bindValue(":user_id", Auth::user()['user_id']);
+$stmt->execute();
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Prepare data for Chart.js
+$chartData = [
+    "labels" => [],
+    "datasets" => []
+];
+
+$sums = []; // To store the total scores for each task
+$likertLabels = ["Physical Demand", "Mental Demand", "Frustration", "Performance"];
+$colors = [
+  "rgba(34, 193, 195, 0.8)",
+  "rgba(253, 187, 45, 0.8)",
+  "rgba(238, 83, 83, 0.8)",
+  "rgba(102, 16, 242, 0.8)" 
+];
+
+foreach ($result as $row) {
+  $taskName = $row['task_name'];
+  $likertScores = [$row['ans1'], $row['ans2'], $row['ans3'], $row['ans4']];
+  // $sums[] = array_sum($likertScores); // No longer needed for the chart
+
+  // Add task name to labels
+  $chartData["labels"][] = $taskName;
+
+  // Add each Likert score to the respective dataset
+  foreach ($likertScores as $index => $score) {
+      if (!isset($chartData["datasets"][$index])) {
+          $chartData["datasets"][$index] = [
+              "label" => $likertLabels[$index],
+              "data" => [],
+              "backgroundColor" => $colors[$index]
+          ];
+      }
+      $chartData["datasets"][$index]["data"][] = $score;
+  }
+}
+
+
+
+?>
 <h1 class="text-center">Welcome, <?php echo $_SESSION['user']['first_name'] ?></h1>
 <br>
 <div class="list-group">
   <a href="index.php?page=visualize" class="text-center list-group-item list-group-item-action active"><i class="fa-solid fa-chart-pie"></i> Visualize</a>
 </div>
 
+<p>&nbsp;&nbsp;</p>
+
+<div class="card mb-4 shadow-sm rounded">
+  <div class="card-header">
+    <h5 class="card-title mb-0">Likert Scale Results</h5>
+  </div>
+  <div class="card-body">
+    <div class="chart-container">
+      <canvas id="stackedBarChart"></canvas>
+    </div>
+    <!-- Navigation Buttons -->
+    <div class="d-flex justify-content-center mt-3">
+      <button id="prevButton" class="btn btn-secondary me-2">Previous</button>
+      <button id="nextButton" class="btn btn-secondary">Next</button>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+  const fullChartData = <?php echo json_encode($chartData); ?>;
+  const itemsPerPage = 2;
+
+  let currentIndex = Math.max(0, fullChartData.labels.length - itemsPerPage);
+    
+  console.log(currentIndex);
+
+  // Function to get the subset of data to display
+  function getSubsetData() {
+    // Clone the chart data to avoid modifying the original
+    const subsetData = JSON.parse(JSON.stringify(fullChartData));
+
+    // Get the subset of labels
+    subsetData.labels = fullChartData.labels.slice(currentIndex, currentIndex + itemsPerPage);
+
+    // Get the subset of data for each dataset
+    subsetData.datasets.forEach((dataset) => {
+      dataset.data = dataset.data.slice(currentIndex, currentIndex + itemsPerPage);
+    });
+
+    return subsetData;
+  }
+
+  // Create the Chart.js stacked bar chart
+  const ctx = document.getElementById("stackedBarChart").getContext("2d");
+  let stackedBarChart = new Chart(ctx, {
+    type: "bar",
+    data: getSubsetData(),
+    options: {
+      responsive: true,
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function (tooltipItem) {
+              const label = stackedBarChart.data.datasets[tooltipItem.datasetIndex].label;
+              const value = tooltipItem.raw; // Get the raw data value
+              return `${label}: ${value}`; // Show Likert score
+            },
+          },
+        },
+        legend: {
+          position: "top",
+        },
+        datalabels: {
+          display: true,
+          formatter: function(value, context) {
+            // Calculate total for each data point
+            const totals = context.chart.data.datasets
+              .map(dataset => dataset.data[context.dataIndex]);
+
+            const total = totals.reduce((a, b) => a + b, 0);
+
+            // Only display on the last dataset
+            if (context.datasetIndex === context.chart.data.datasets.length - 1) {
+              return '';
+            } else {
+              return '';
+            }
+          },
+          anchor: 'end',
+          align: 'start',
+          offset: -10
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          title: {
+            display: true,
+            text: "Tasks",
+          },
+        },
+        y: {
+          stacked: true,
+          title: {
+            display: true,
+            text: "Likert Scores",
+          },
+          ticks: {
+            beginAtZero: true,
+          },
+        },
+      },
+    },
+    plugins: [ChartDataLabels], // Register the Data Labels plugin
+  });
+
+  // Function to update the chart when navigating
+  function updateChart() {
+    const newData = getSubsetData();
+    stackedBarChart.data.labels = newData.labels;
+    stackedBarChart.data.datasets.forEach((dataset, index) => {
+      dataset.data = newData.datasets[index].data;
+    });
+    stackedBarChart.update();
+
+    // Disable/Enable navigation buttons based on the current index
+    document.getElementById('prevButton').disabled = currentIndex === 0;
+    document.getElementById('nextButton').disabled = currentIndex + itemsPerPage >= fullChartData.labels.length;
+  }
+
+  // Event listeners for navigation buttons
+  document.getElementById('prevButton').addEventListener('click', function () {
+    currentIndex = Math.max(0, currentIndex - itemsPerPage);
+    updateChart();
+  });
+
+  document.getElementById('nextButton').addEventListener('click', function () {
+    currentIndex = Math.min(fullChartData.labels.length - itemsPerPage, currentIndex + itemsPerPage);
+    updateChart();
+  });
+
+  // Initialize the chart and buttons
+  updateChart();
+</script>
 <p>&nbsp;&nbsp;</p>
 
 <div class="card">
@@ -46,11 +235,13 @@ $sql = "
         AND is_completed = 0
     )";
 
-$stmt = $dbconnection->prepare($sql);
-$stmt->bindValue(":user_id", Auth::user()['user_id']);
-$stmt->execute();
+    $stmt = $dbconnection->prepare($sql);
+    $stmt->bindValue(":user_id", Auth::user()['user_id']);
+    $stmt->execute();
+    
+    $tasks = $stmt->fetchAll();
 
-$tasks = $stmt->fetchAll();
+
 
 // If no tasks found, display a message
 if (count($tasks) == 0) {
