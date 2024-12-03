@@ -39,10 +39,43 @@
 
 
 <body>
-<header class="container-fluid">
- <!--   <h1 class="display-3 text-center">Visualizing Mental Load (B)</h1>
-    <hr>
-    <br>
--->
-<?php require_once __DIR__ . "/nav.php"; ?>
-</header>
+  <!-- Header with Back Button and Title -->
+  <header class="container-fluid p-3">
+    <div class="d-flex align-items-center">
+      <!-- Back Button -->
+      <button class="btn-secondary me-3" onclick="history.back();" aria-label="Go Back">
+        <i class="fas fa-arrow-left me-2"></i> Back
+      </button>
+
+    
+    </div>
+
+    <!-- Navigation Bar -->
+    <?php require_once __DIR__ . "/nav.php"; ?>
+  </header>
+  
+
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="navbar fixed-bottom navbar-expand-lg p-3" style="background-color: #4B286D;">
+    <div class="container-fluid d-flex justify-content-around">
+      <!-- Dashboard Link -->
+      <a href="index.php?page=dashboard" class="nav-item nav-link text-center" style="color: white;">
+        <i class="fa-solid fa-house fa-lg" style="color: #9A7FB5;"></i>
+        <span class="d-block" style="font-size: 12px; color: #E9D8F6;">Home</span>
+      </a>
+
+      <!-- Manage Link -->
+      <a href="index.php?page=manage" class="nav-item nav-link text-center" style="color: white;">
+        <i class="fa-solid fa-calendar fa-lg" style="color: #9A7FB5;"></i>
+        <span class="d-block" style="font-size: 12px; color: #E9D8F6;">Manage</span>
+      </a>
+
+      <!-- Visualize Link -->
+      <a href="index.php?page=visualize" class="nav-item nav-link text-center" style="color: white;">
+        <i class="fa-solid fa-chart-pie fa-lg" style="color: #9A7FB5;"></i>
+        <span class="d-block" style="font-size: 12px; color: #E9D8F6;">Visualize</span>
+      </a>
+    </div>
+  </nav>
+</body>
