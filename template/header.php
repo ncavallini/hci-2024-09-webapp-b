@@ -78,4 +78,58 @@
       </a>
     </div>
   </nav>
+  <script>
+    (function() {
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let touchEndX = 0;
+      let touchEndY = 0;
+      const minSwipeDistance = 50; // Minimum swipe distance in pixels
+      const maxVerticalMovement = 100; // Maximum vertical movement allowed
+      const swipeHint = document.getElementById('swipeHint');
+      let hintTimeout;
+
+      function handleGesture() {
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = Math.abs(touchEndY - touchStartY);
+
+        if (deltaX > minSwipeDistance && deltaY < maxVerticalMovement) {
+          // Detected a left-to-right swipe
+          history.back();
+        }
+      }
+
+      function showSwipeHint() {
+        if (swipeHint) {
+          swipeHint.style.display = 'block';
+          clearTimeout(hintTimeout);
+          hintTimeout = setTimeout(() => {
+            swipeHint.style.display = 'none';
+          }, 3000); // Hide after 3 seconds
+        }
+      }
+
+      document.addEventListener('touchstart', function(event) {
+        if (event.touches.length > 1) return; // Ignore multi-touch
+        touchStartX = event.touches[0].clientX;
+        touchStartY = event.touches[0].clientY;
+      }, false);
+
+      document.addEventListener('touchmove', function(event) {
+        if (event.touches.length > 1) return; // Ignore multi-touch
+        touchEndX = event.touches[0].clientX;
+        touchEndY = event.touches[0].clientY;
+
+        // Optionally, show the swipe hint when the user starts swiping
+        if (Math.abs(touchEndX - touchStartX) > 10) {
+          showSwipeHint();
+        }
+      }, false);
+
+      document.addEventListener('touchend', function(event) {
+        handleGesture();
+      }, false);
+    })();
+  </script>
+
 </body>
