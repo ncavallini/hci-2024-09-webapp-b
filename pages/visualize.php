@@ -18,6 +18,7 @@ try {
     $stmt->execute([$user_id, $user_id]);
     $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    
     // Calculate total mental load
     $total_load = array_sum(array_column($tasks, 'estimated_load'));
 
@@ -41,6 +42,14 @@ try {
     $tasks = [];
     $error = $e->getMessage();
 }
+?>
+
+<?php
+    $sql = "SELECT g.group_id, g.name FROM membership m JOIN users u ON u.username = m.username JOIN groups g ON g.group_id = m.group_id WHERE u.user_id = ?";
+    $stmt = $dbconnection->prepare($sql);
+    $stmt->execute([$user_id]);
+    $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <div class="container mt-5">
@@ -73,8 +82,14 @@ try {
     <!-- Mode Buttons (Tasks or Groups) -->
     <div class="row mb-3">
         <div class="col-12 d-flex flex-wrap justify-content-center gap-2">
-            <button id="taskListButton" class="btn btn-primary btn-uniform" onclick="toggleTaskGroup('tasks')">Tasks</button>
-            <button id="groupListButton" class="btn btn-secondary btn-uniform" onclick="toggleTaskGroup('groups')">Groups</button>
+            <select id="groupSelect" class="form-select" style="width: 200px;" onchange="groupSelectionChanged()">
+                <option value="personal">Personal</option>
+                <?php foreach ($groups as $group): ?>
+                    <option value="<?php echo htmlspecialchars($group['group_id']); ?>">
+                        <?php echo htmlspecialchars($group['name']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
     </div>
 
@@ -166,8 +181,12 @@ try {
 
 <!-- Your custom script should come after the libraries -->
 <script src="path/to/your/custom/script.js"></script>
+
 <script>
-    let currentMode = 'tasks'; // Default mode
+    console.log('Script loaded');
+
+    let selectedGroup = 'personal'; // Default selection
+    let tasks = <?php echo json_encode($tasks); ?>;
 
     let heatmapChartInstance;
     let radarChartInstance;
@@ -175,15 +194,10 @@ try {
     let bubbleChartInstance;
     let pieChartInstance;
     let barChartInstance;
-    
-    function toggleTaskGroup(mode) {
-        currentMode = mode;
 
-        // Update button styles for mode buttons
-        document.getElementById("taskListButton").classList.toggle("btn-primary", mode === "tasks");
-        document.getElementById("taskListButton").classList.toggle("btn-secondary", mode !== "tasks");
-        document.getElementById("groupListButton").classList.toggle("btn-primary", mode === "groups");
-        document.getElementById("groupListButton").classList.toggle("btn-secondary", mode !== "groups");
+    function groupSelectionChanged() {
+        const selectElement = document.getElementById('groupSelect');
+        selectedGroup = selectElement.value;
 
         // Update all charts
         updateHeatmapChart();
@@ -194,568 +208,228 @@ try {
         updateBarChart();
     }
 
-
-function updateHeatmapChart() {
-    console.log("heat");
-    const tasks = <?php echo json_encode($tasks); ?>;
-    const ctx = document.getElementById("heatmapChart").getContext("2d");
-
-    // Destroy previous chart instance if it exists
-    if (heatmapChartInstance) {
-        heatmapChartInstance.destroy();
-        heatmapChartInstance = null;
-    }
-
-    // Filter tasks to exclude completed ones
-    const activeTasks = tasks.filter(task => parseInt(task.is_completed, 10) === 0);
-
-    // Prepare data for heatmap
-    const dataMatrix = [];
-    const xLabelsSet = new Set(); // Due Dates
-    const yLabelsSet = new Set(); // Task Titles or Group Names
-
-    activeTasks.forEach(task => {
-        const dueDate = new Date(task.due_date).toLocaleDateString();
-        const yValue = currentMode === 'tasks' ? task.title : task.group_name || 'Personal';
-
-        xLabelsSet.add(dueDate);
-        yLabelsSet.add(yValue);
-
-        dataMatrix.push({
-            x: dueDate,
-            y: yValue,
-            v: task.estimated_load,
-        });
-    });
-
-    const xLabels = Array.from(xLabelsSet).sort((a, b) => new Date(a) - new Date(b));
-    const yLabels = Array.from(yLabelsSet);
-
-    // Map dataMatrix to correct indices with error handling
-    const data = dataMatrix.map(item => {
-        const xIndex = xLabels.indexOf(item.x);
-        const yIndex = yLabels.indexOf(item.y);
-        if (xIndex === -1 || yIndex === -1) {
-            console.warn(`Label not found for x: ${item.x}, y: ${item.y}`);
+    function filterTasksByGroup(tasks, group) {
+        if (group === 'personal') {
+            return tasks.filter(task => task.group_id == 0);
+        } else {
+            return tasks.filter(task => task.group_id == group);
         }
-        return {
-            x: xIndex !== -1 ? xIndex : 0, // Assign to first index if not found
-            y: yIndex !== -1 ? yIndex : 0, // Assign to first index if not found
-            v: typeof item.v !== 'undefined' ? item.v : 0, // Default to 0 if undefined
-        };
-    });
-
-    // Log the prepared data
-    console.log('Heatmap Data:', data);
-    console.log('X Labels:', xLabels);
-    console.log('Y Labels:', yLabels);
-
-    // Create the heatmap chart
-    heatmapChartInstance = new Chart(ctx, {
-        type: 'matrix',
-        data: {
-            datasets: [{
-                label: 'Heatmap',
-                data: data,
-                backgroundColor: context => {
-                    const dataPoint = context.dataset.data[context.dataIndex];
-                    if (dataPoint && typeof dataPoint.v !== 'undefined') {
-                        const alpha = Math.min(dataPoint.v / 10, 1); // Ensure alpha doesn't exceed 1
-                        return `rgba(255, 99, 132, ${alpha})`;
-                    } else {
-                        // Default color for undefined values
-                        return 'rgba(200, 200, 200, 0.5)';
-                    }
-                },
-                width: ({chart}) => (chart.chartArea || {}).width / xLabels.length - 1,
-                height: ({chart}) => (chart.chartArea || {}).height / yLabels.length - 1,
-            }]
-        },
-        options: {
-            scales: {
-                x: {
-                    type: 'category',
-                    labels: xLabels,
-                    offset: true,
-                    grid: {
-                        display: false,
-                    },
-                    title: {
-                        display: true,
-                        text: 'Due Dates',
-                    },
-                },
-                y: {
-                    type: 'category',
-                    labels: yLabels,
-                    offset: true,
-                    grid: {
-                        display: false,
-                    },
-                    title: {
-                        display: true,
-                        text: currentMode === 'tasks' ? 'Tasks' : 'Groups',
-                    },
-                },
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: context => {
-                            const xLabel = xLabels[context.data.x];
-                            const yLabel = yLabels[context.data.y];
-                            const value = context.data.v;
-                            return `${yLabel} - ${xLabel}: ${value}`;
-                        },
-                    },
-                },
-                legend: {
-                    display: false,
-                },
-            },
-        },
-    });
-}
+    }
 
     function updateHeatmapChart() {
-    const tasks = <?php echo json_encode($tasks); ?>;
-    const ctx = document.getElementById("heatmapChart").getContext("2d");
-
-    // Destroy previous chart instance if it exists
-    if (heatmapChartInstance) {
-        heatmapChartInstance.destroy();
-        heatmapChartInstance = null;
-    }
-
-    // Filter tasks to exclude completed ones
-    const activeTasks = tasks.filter(task => parseInt(task.is_completed, 10) === 0);
-
-    // Prepare data for heatmap
-    const dataMatrix = [];
-    const xLabelsSet = new Set(); // Due Dates
-    const yLabelsSet = new Set(); // Task Titles or Group Names
-
-    activeTasks.forEach(task => {
-        const dueDate = new Date(task.due_date).toLocaleDateString();
-        const yValue = currentMode === 'tasks' ? task.title : task.group_name || 'Personal';
-
-        xLabelsSet.add(dueDate);
-        yLabelsSet.add(yValue);
-
-        dataMatrix.push({
-            x: dueDate,
-            y: yValue,
-            v: task.estimated_load,
-        });
-    });
-
-    const xLabels = Array.from(xLabelsSet).sort((a, b) => new Date(a) - new Date(b));
-    const yLabels = Array.from(yLabelsSet);
-
-    // Map dataMatrix to correct indices
-    const data = dataMatrix.map(item => ({
-        x: xLabels.indexOf(item.x),
-        y: yLabels.indexOf(item.y),
-        v: item.v,
-    }));
-
-    // Log the prepared data
-    console.log('Heatmap Data:', data);
-    console.log('X Labels:', xLabels);
-    console.log('Y Labels:', yLabels);
-
-    // Create the heatmap chart
-    heatmapChartInstance = new Chart(ctx, {
-        type: 'matrix',
-        data: {
-            datasets: [{
-                label: 'Heatmap',
-                data: data,
-                backgroundColor: context => {
-                    const dataPoint = context.dataset.data[context.dataIndex];
-                    if (dataPoint && typeof dataPoint.v !== 'undefined') {
-                        const alpha = Math.min(dataPoint.v / 10, 1); // Ensure alpha doesn't exceed 1
-                        return `rgba(255, 99, 132, ${alpha})`;
-                    } else {
-                        // Default color for undefined values
-                        return 'rgba(200, 200, 200, 0.5)';
-                    }
-                },
-                width: ({chart}) => (chart.chartArea || {}).width / xLabels.length - 1,
-                height: ({chart}) => (chart.chartArea || {}).height / yLabels.length - 1,
-            }]
-        },
-        options: {
-            scales: {
-                x: {
-                    type: 'category',
-                    labels: xLabels,
-                    offset: true,
-                    grid: {
-                        display: false,
-                    },
-                    title: {
-                        display: true,
-                        text: 'Due Dates',
-                    },
-                },
-                y: {
-                    type: 'category',
-                    labels: yLabels,
-                    offset: true,
-                    grid: {
-                        display: false,
-                    },
-                    title: {
-                        display: true,
-                        text: currentMode === 'tasks' ? 'Tasks' : 'Groups',
-                    },
-                },
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: context => {
-                            const xLabel = xLabels[context.data.x];
-                            const yLabel = yLabels[context.data.y];
-                            const value = context.data.v;
-                            return `${yLabel} - ${xLabel}: ${value}`;
-                        },
-                    },
-                },
-                legend: {
-                    display: false,
-                },
-            },
-        },
-    });
-}
-
-    function updateHeatmapChart() {
-    const tasks = <?php echo json_encode($tasks); ?>;
-    const ctx = document.getElementById("heatmapChart").getContext("2d");
-
-    // Destroy previous chart instance if it exists
-    if (heatmapChartInstance) {
-        heatmapChartInstance.destroy();
-        heatmapChartInstance = null;
-    }
-
-    // Prepare data for heatmap
-    const activeTasks = tasks.filter(task => parseInt(task.is_completed, 10) === 0);
-
-    const dataMatrix = [];
-    const xLabelsSet = new Set(); // Due Dates
-    const yLabelsSet = new Set(); // Task Titles or Group Names
-
-    activeTasks.forEach(task => {
-        const dueDate = new Date(task.due_date).toLocaleDateString();
-        const yValue = currentMode === 'tasks' ? task.title : task.group_name || 'Personal';
-
-        xLabelsSet.add(dueDate);
-        yLabelsSet.add(yValue);
-
-        dataMatrix.push({
-            x: dueDate,
-            y: yValue,
-            v: task.estimated_load,
-        });
-    });
-
-    const xLabels = Array.from(xLabelsSet).sort((a, b) => new Date(a) - new Date(b));
-    const yLabels = Array.from(yLabelsSet);
-
-    // Map dataMatrix to correct indices
-    const data = dataMatrix.map(item => ({
-        x: xLabels.indexOf(item.x),
-        y: yLabels.indexOf(item.y),
-        v: item.v,
-    }));
-
-    // Create the heatmap chart
-    heatmapChartInstance = new Chart(ctx, {
-        type: 'matrix',
-        data: {
-            datasets: [{
-                label: 'Heatmap',
-                data: data,
-                backgroundColor: context => {
-                    const value = context.dataset.data[context.dataIndex].v;
-                    const alpha = value / 10; // Adjust as needed
-                    return `rgba(255, 99, 132, ${alpha})`;
-                },
-                width: ({chart}) => (chart.chartArea || {}).width / xLabels.length - 1,
-                height: ({chart}) => (chart.chartArea || {}).height / yLabels.length - 1,
-            }]
-        },
-        options: {
-            scales: {
-                x: {
-                    type: 'category',
-                    labels: xLabels,
-                    offset: true,
-                    grid: {
-                        display: false,
-                    },
-                    title: {
-                        display: true,
-                        text: 'Due Dates',
-                    },
-                },
-                y: {
-                    type: 'category',
-                    labels: yLabels,
-                    offset: true,
-                    grid: {
-                        display: false,
-                    },
-                    title: {
-                        display: true,
-                        text: currentMode === 'tasks' ? 'Tasks' : 'Groups',
-                    },
-                },
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: context => {
-                            const xLabel = xLabels[context.data.x];
-                            const yLabel = yLabels[context.data.y];
-                            const value = context.data.v;
-                            return `${yLabel} - ${xLabel}: ${value}`;
-                        },
-                    },
-                },
-                legend: {
-                    display: false,
-                },
-            },
-        },
-    });
-}
-function updateScatterChart() {
-    const tasks = <?php echo json_encode($tasks); ?>;
-    const ctx = document.getElementById("scatterChart").getContext("2d");
-
-    // Destroy previous chart instance if it exists
-    if (scatterChartInstance) {
-        scatterChartInstance.destroy();
-        scatterChartInstance = null;
-    }
-
-    // Prepare data
-    const data = tasks.map(task => {
-        const xValue = currentMode === 'tasks' ? new Date(task.due_date).getTime() : task.group_name || 'Personal';
-        return {
-            x: xValue,
-            y: parseFloat(task.estimated_load),
-            label: task.title,
-            group: task.group_name || 'Personal',
-        };
-    });
-
-    // For tasks mode, we need to handle date on x-axis
-    let xScaleOptions;
-    if (currentMode === 'tasks') {
-        xScaleOptions = {
-            type: 'time',
-            time: {
-                unit: 'day',
-                tooltipFormat: 'MMM d, yyyy',
-            },
-            title: {
-                display: true,
-                text: 'Due Date',
-            },
-        };
-    } else {
-        xScaleOptions = {
-            type: 'category',
-            title: {
-                display: true,
-                text: 'Groups',
-            },
-        };
-    }
-
-    // Create the scatter chart
-    scatterChartInstance = new Chart(ctx, {
-        type: 'scatter',
-        data: {
-            datasets: [{
-                label: 'Tasks',
-                data: data,
-                backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-            }],
-        },
-        options: {
-            scales: {
-                x: xScaleOptions,
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Estimated Load',
-                    },
-                },
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: context => {
-                            const label = context.raw.label || '';
-                            const group = context.raw.group || '';
-                            const yValue = context.parsed.y;
-                            return `${label} (${group}): ${yValue}`;
-                        },
-                    },
-                },
-                legend: {
-                    display: false,
-                },
-            },
-        },
-    });
-}
-
-function updateRadarChart() {
-    const tasks = <?php echo json_encode($tasks); ?>;
-    const ctx = document.getElementById("radarChart").getContext("2d");
-
-    // Destroy previous chart instance if it exists
-    if (radarChartInstance) {
-        radarChartInstance.destroy();
-        radarChartInstance = null;
-    }
-
-    // Prepare data
-    let labels, dataValues;
-    if (currentMode === 'tasks') {
-        // Limit the number of tasks for readability
-        const maxTasks = 12;
-        const taskData = tasks.slice(0, maxTasks);
-        labels = taskData.map(task => task.title);
-        dataValues = taskData.map(task => parseFloat(task.estimated_load));
-    } else {
-        // Aggregate by groups
-        const groupData = {};
-        tasks.forEach(task => {
-            const groupName = task.group_name || 'Personal';
-            if (!groupData[groupName]) {
-                groupData[groupName] = 0;
-            }
-            groupData[groupName] += parseFloat(task.estimated_load);
-        });
-        labels = Object.keys(groupData);
-        dataValues = Object.values(groupData);
-    }
-
-    // Create the radar chart
-    radarChartInstance = new Chart(ctx, {
-        type: 'radar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Estimated Load',
-                data: dataValues,
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-            }],
-        },
-        options: {
-            scales: {
-                r: {
-                    beginAtZero: true,
-                },
-            },
-            plugins: {
-                legend: {
-                    display: false,
-                },
-            },
-        },
-    });
-}
-function updateBubbleChart() {
-        console.log('Updating Bubble Chart...');
-        const tasks = <?php echo json_encode($tasks); ?>;
-        const ctx = document.getElementById("bubbleChart").getContext("2d");
+        console.log('Updating Heatmap Chart...');
+        const ctx = document.getElementById("heatmapChart").getContext("2d");
 
         // Destroy previous chart instance if it exists
-        if (bubbleChartInstance) {
-            bubbleChartInstance.destroy();
-            bubbleChartInstance = null;
+        if (heatmapChartInstance) {
+            heatmapChartInstance.destroy();
+            heatmapChartInstance = null;
         }
 
-        // Prepare data
-        const data = tasks.map(task => {
-            return {
-                x: new Date(task.due_date).getTime(), // Due date as timestamp
-                y: parseFloat(task.estimated_load),
-                r: Math.sqrt(task.estimated_load) * 5, // Bubble radius proportional to estimated load
-                label: task.title,
-                group: task.group_name || 'Personal',
-            };
+        // Filter tasks based on selected group
+        const filteredTasks = filterTasksByGroup(tasks, selectedGroup);
+
+        // Prepare data for heatmap
+        const activeTasks = filteredTasks.filter(task => parseInt(task.is_completed, 10) === 0);
+
+        const dataMatrix = [];
+        const xLabelsSet = new Set(); // Due Dates
+        const yLabelsSet = new Set(); // Task Titles
+
+        activeTasks.forEach(task => {
+            const dueDate = new Date(task.due_date).toLocaleDateString();
+            const yValue = task.title;
+
+            xLabelsSet.add(dueDate);
+            yLabelsSet.add(yValue);
+
+            dataMatrix.push({
+                x: dueDate,
+                y: yValue,
+                v: task.estimated_load,
+            });
         });
 
-        // Define x-axis based on current mode
-        let xScaleOptions;
-        if (currentMode === 'tasks') {
-            xScaleOptions = {
-                type: 'time',
-                time: {
-                    unit: 'day',
-                    tooltipFormat: 'MMM D, YYYY',
-                    displayFormats: {
-                        day: 'MMM D',
-                    },
-                },
-                title: {
-                    display: true,
-                    text: 'Due Date',
-                },
-                ticks: {
-                    autoSkip: true,
-                    maxTicksLimit: 20,
-                },
-            };
-        } else {
-            xScaleOptions = {
-                type: 'category',
-                title: {
-                    display: true,
-                    text: 'Groups',
-                },
-                ticks: {
-                    autoSkip: false,
-                },
-            };
-        }
+        const xLabels = Array.from(xLabelsSet).sort((a, b) => new Date(a) - new Date(b));
+        const yLabels = Array.from(yLabelsSet);
 
-        // Create the bubble chart
-        bubbleChartInstance = new Chart(ctx, {
-            type: 'bubble',
+        // Map dataMatrix to correct indices
+        const data = dataMatrix.map(item => ({
+            x: xLabels.indexOf(item.x),
+            y: yLabels.indexOf(item.y),
+            v: item.v,
+        }));
+
+        // Create the heatmap chart
+        heatmapChartInstance = new Chart(ctx, {
+            type: 'matrix',
             data: {
                 datasets: [{
-                    label: 'Tasks',
+                    label: 'Task Load Intensity',
                     data: data,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: context => {
+                        const value = context.dataset.data[context.dataIndex].v;
+                        const alpha = Math.min(Math.max(value / 10, 0.2), 1);
+                        return `rgba(255, 99, 132, ${alpha})`;
+                    },
+                    width: ({chart}) => (chart.chartArea || {}).width / xLabels.length - 1,
+                    height: ({chart}) => (chart.chartArea || {}).height / yLabels.length - 1,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'category',
+                        labels: xLabels,
+                        offset: true,
+                        grid: {
+                            display: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Due Dates',
+                        },
+                    },
+                    y: {
+                        type: 'category',
+                        labels: yLabels,
+                        offset: true,
+                        grid: {
+                            display: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Tasks',
+                        },
+                    },
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: context => {
+                                const xLabel = xLabels[context.data.x];
+                                const yLabel = yLabels[context.data.y];
+                                const value = context.data.v;
+                                return `${yLabel} - ${xLabel}: ${value}`;
+                            },
+                        },
+                    },
+                    legend: {
+                        display: false,
+                    },
+                },
+            },
+        });
+    }
+
+    function updateRadarChart() {
+        console.log('Updating Radar Chart...');
+        const ctx = document.getElementById("radarChart").getContext("2d");
+
+        // Destroy previous chart instance if it exists
+        if (radarChartInstance) {
+            radarChartInstance.destroy();
+            radarChartInstance = null;
+        }
+
+        // Filter tasks based on selected group
+        const filteredTasks = filterTasksByGroup(tasks, selectedGroup);
+
+        // Prepare data
+        const maxTasks = 12;
+        const taskData = filteredTasks.slice(0, maxTasks);
+        const labels = taskData.map(task => task.title);
+        const dataValues = taskData.map(task => parseFloat(task.estimated_load));
+
+        // Create the radar chart
+        radarChartInstance = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Estimated Load Comparison',
+                    data: dataValues,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    pointBackgroundColor: 'rgba(54, 162, 235, 1)',
                 }],
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // Disable aspect ratio
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                        },
+                    },
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: context => {
+                                const label = context.label || '';
+                                const value = context.parsed.r || 0;
+                                return `${label}: ${value}`;
+                            },
+                        },
+                    },
+                    legend: {
+                        display: false,
+                    },
+                },
+            },
+        });
+    }
+
+    function updateScatterChart() {
+        console.log('Updating Task Load vs. Due Date Scatter Chart...');
+        const ctx = document.getElementById("scatterChart").getContext("2d");
+
+        // Destroy previous chart instance if it exists
+        if (scatterChartInstance) {
+            scatterChartInstance.destroy();
+            scatterChartInstance = null;
+        }
+
+        // Filter tasks based on selected group
+        const filteredTasks = filterTasksByGroup(tasks, selectedGroup);
+
+        // Prepare data
+        const data = filteredTasks.map(task => {
+            return {
+                x: new Date(task.due_date),
+                y: parseFloat(task.estimated_load),
+                label: task.title,
+            };
+        });
+
+        // Create the scatter chart
+        scatterChartInstance = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Task Load vs. Due Date',
+                    data: data,
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     tooltip: {
                         callbacks: {
                             label: context => {
                                 const label = context.raw.label || '';
-                                const group = context.raw.group || '';
-                                const yValue = context.raw.y;
-                                return `${label} (${group}): ${yValue}`;
+                                const yValue = context.parsed.y;
+                                return `${label}: ${yValue}`;
                             },
                         },
                     },
@@ -764,7 +438,106 @@ function updateBubbleChart() {
                     },
                 },
                 scales: {
-                    x: xScaleOptions,
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            tooltipFormat: 'MMM D, YYYY',
+                            displayFormats: {
+                                day: 'MMM D',
+                            },
+                        },
+                        title: {
+                            display: true,
+                            text: 'Due Date',
+                        },
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 20,
+                        },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Estimated Load',
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    function updateBubbleChart() {
+        console.log('Updating Task Priority Bubble Chart...');
+        const ctx = document.getElementById("bubbleChart").getContext("2d");
+
+        // Destroy previous chart instance if it exists
+        if (bubbleChartInstance) {
+            bubbleChartInstance.destroy();
+            bubbleChartInstance = null;
+        }
+
+        // Filter tasks based on selected group
+        const filteredTasks = filterTasksByGroup(tasks, selectedGroup);
+
+        // Prepare data
+        const data = filteredTasks.map(task => {
+            return {
+                x: new Date(task.due_date).getTime(),
+                y: parseFloat(task.estimated_load),
+                r: Math.sqrt(task.estimated_load) * 5,
+                label: task.title,
+            };
+        });
+
+        // Create the bubble chart
+        bubbleChartInstance = new Chart(ctx, {
+            type: 'bubble',
+            data: {
+                datasets: [{
+                    label: 'Task Priority',
+                    data: data,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: context => {
+                                const label = context.raw.label || '';
+                                const yValue = context.raw.y;
+                                return `${label}: Load = ${yValue}`;
+                            },
+                        },
+                    },
+                    legend: {
+                        display: false,
+                    },
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            tooltipFormat: 'MMM D, YYYY',
+                            displayFormats: {
+                                day: 'MMM D',
+                            },
+                        },
+                        title: {
+                            display: true,
+                            text: 'Due Date',
+                        },
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 20,
+                        },
+                    },
                     y: {
                         beginAtZero: true,
                         title: {
@@ -778,8 +551,7 @@ function updateBubbleChart() {
     }
 
     function updatePieChart() {
-        console.log('Updating Pie Chart...');
-        const tasks = <?php echo json_encode($tasks); ?>;
+        console.log('Updating Estimated Load Distribution Pie Chart...');
         const ctx = document.getElementById("pieChart").getContext("2d");
 
         // Destroy previous chart instance if it exists
@@ -788,18 +560,21 @@ function updateBubbleChart() {
             pieChartInstance = null;
         }
 
-        // Prepare data: Distribution of tasks across groups
-        const groupCounts = {};
-        tasks.forEach(task => {
-            const group = currentMode === 'tasks' ? 'All Tasks' : (task.group_name || 'Personal');
-            if (!groupCounts[group]) {
-                groupCounts[group] = 0;
+        // Filter tasks based on selected group
+        const filteredTasks = filterTasksByGroup(tasks, selectedGroup);
+
+        // Prepare data: Sum of estimated load per task
+        const loadPerTask = {};
+        filteredTasks.forEach(task => {
+            const title = task.title;
+            if (!loadPerTask[title]) {
+                loadPerTask[title] = 0;
             }
-            groupCounts[group] += 1;
+            loadPerTask[title] += parseFloat(task.estimated_load);
         });
 
-        const labels = Object.keys(groupCounts);
-        const dataValues = Object.values(groupCounts);
+        const labels = Object.keys(loadPerTask);
+        const dataValues = Object.values(loadPerTask);
         const backgroundColors = generateColors(labels.length);
 
         // Create the pie chart
@@ -816,7 +591,7 @@ function updateBubbleChart() {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // Disable aspect ratio
+                maintainAspectRatio: false,
                 plugins: {
                     tooltip: {
                         callbacks: {
@@ -832,14 +607,20 @@ function updateBubbleChart() {
                     legend: {
                         position: 'right',
                     },
+                    title: {
+                        display: true,
+                        text: 'Estimated Load Distribution by Task',
+                        font: {
+                            size: 16
+                        }
+                    }
                 },
             },
         });
     }
 
     function updateBarChart() {
-        console.log('Updating Bar Chart...');
-        const tasks = <?php echo json_encode($tasks); ?>;
+        console.log('Updating Total Estimated Load Bar Chart...');
         const ctx = document.getElementById("barChart").getContext("2d");
 
         // Destroy previous chart instance if it exists
@@ -848,31 +629,20 @@ function updateBubbleChart() {
             barChartInstance = null;
         }
 
-        // Prepare data: Total estimated load per day (Tasks mode) or per group (Groups mode)
-        let labels, dataValues;
-        if (currentMode === 'tasks') {
-            const loadPerDay = {};
-            tasks.forEach(task => {
-                const day = new Date(task.due_date).toLocaleDateString();
-                if (!loadPerDay[day]) {
-                    loadPerDay[day] = 0;
-                }
-                loadPerDay[day] += parseFloat(task.estimated_load);
-            });
-            labels = Object.keys(loadPerDay).sort((a, b) => new Date(a) - new Date(b));
-            dataValues = labels.map(day => loadPerDay[day]);
-        } else {
-            const loadPerGroup = {};
-            tasks.forEach(task => {
-                const group = task.group_name || 'Personal';
-                if (!loadPerGroup[group]) {
-                    loadPerGroup[group] = 0;
-                }
-                loadPerGroup[group] += parseFloat(task.estimated_load);
-            });
-            labels = Object.keys(loadPerGroup);
-            dataValues = labels.map(group => loadPerGroup[group]);
-        }
+        // Filter tasks based on selected group
+        const filteredTasks = filterTasksByGroup(tasks, selectedGroup);
+
+        // Prepare data: Total estimated load per due date
+        const loadPerDay = {};
+        filteredTasks.forEach(task => {
+            const day = new Date(task.due_date).toLocaleDateString();
+            if (!loadPerDay[day]) {
+                loadPerDay[day] = 0;
+            }
+            loadPerDay[day] += parseFloat(task.estimated_load);
+        });
+        const labels = Object.keys(loadPerDay).sort((a, b) => new Date(a) - new Date(b));
+        const dataValues = labels.map(day => loadPerDay[day]);
 
         const backgroundColors = generateColors(labels.length);
 
@@ -891,12 +661,12 @@ function updateBubbleChart() {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // Disable aspect ratio
+                maintainAspectRatio: false,
                 scales: {
                     x: {
                         title: {
                             display: true,
-                            text: currentMode === 'tasks' ? 'Due Dates' : 'Groups',
+                            text: 'Due Dates',
                         },
                         ticks: {
                             autoSkip: false,
@@ -975,7 +745,7 @@ function updateBubbleChart() {
     document.addEventListener("DOMContentLoaded", function () {
         const loadPercentage = <?php echo $load_percentage; ?>;
         updateProgressBar(loadPercentage);
-        console.log("gasdfa");
+        console.log("DOM fully loaded and parsed");
 
         // Initialize charts
         updateHeatmapChart();
