@@ -54,16 +54,19 @@ try {
 
 <div class="container mt-5">
     <h1 class="mb-4 text-center">All Tasks</h1>
-    <!-- Mental Load Bar -->
-    <div class="row mb-4 position-relative">
+    
+    <!-- Mental Load Section -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h5>Your Mental Load</h5>
+            <a href="index.php?page=pastLoad">
+                <button class="btn btn-sm btn-info">Past Mental Load</button>
+            </a>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
         <div class="col-12">
-            <h5>Your Mental Load
-                <a class="nav-link d-inline" href="index.php?page=pastLoad">
-                    <button class="btn btn-sm btn-info float-end">
-                        Past Mental Load
-                    </button>
-                </a>
-            </h5>
             <div class="progress mt-3">
                 <div 
                     class="progress-bar" 
@@ -79,6 +82,8 @@ try {
             <p class="mt-2">Current Load: <?php echo $total_load; ?> / Maximum Load: <?php echo $max_load; ?></p>
         </div>
     </div>
+    
+
     <!-- Mode Buttons (Tasks or Groups) -->
     <div class="row mb-3">
         <div class="col-12 d-flex flex-wrap justify-content-center gap-2">
