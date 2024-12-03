@@ -111,6 +111,42 @@ try {
         <div class="card-body">
             <div class="chart-container">
                 <canvas id="scatterChart"></canvas>
+                </div>
+        </div>
+    </div>
+
+    <!-- Bubble Chart -->
+    <div class="card mb-4 shadow-sm rounded" id="bubbleChartCard">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Bubble Chart</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="bubbleChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie Chart -->
+    <div class="card mb-4 shadow-sm rounded" id="pieChartCard">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Pie Chart</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bar Chart -->
+    <div class="card mb-4 shadow-sm rounded" id="barChartCard">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Bar Chart</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="barChart"></canvas>
             </div>
         </div>
     </div>
@@ -136,21 +172,28 @@ try {
     let heatmapChartInstance;
     let radarChartInstance;
     let scatterChartInstance;
-
+    let bubbleChartInstance;
+    let pieChartInstance;
+    let barChartInstance;
+    
     function toggleTaskGroup(mode) {
-    currentMode = mode;
+        currentMode = mode;
 
-    // Update button styles for mode buttons
-    document.getElementById("taskListButton").classList.toggle("btn-primary", mode === "tasks");
-    document.getElementById("taskListButton").classList.toggle("btn-secondary", mode !== "tasks");
-    document.getElementById("groupListButton").classList.toggle("btn-primary", mode === "groups");
-    document.getElementById("groupListButton").classList.toggle("btn-secondary", mode !== "groups");
+        // Update button styles for mode buttons
+        document.getElementById("taskListButton").classList.toggle("btn-primary", mode === "tasks");
+        document.getElementById("taskListButton").classList.toggle("btn-secondary", mode !== "tasks");
+        document.getElementById("groupListButton").classList.toggle("btn-primary", mode === "groups");
+        document.getElementById("groupListButton").classList.toggle("btn-secondary", mode !== "groups");
 
-    // Update all charts
-    updateHeatmapChart();
-    updateRadarChart();
-    updateScatterChart();
-}
+        // Update all charts
+        updateHeatmapChart();
+        updateRadarChart();
+        updateScatterChart();
+        updateBubbleChart();
+        updatePieChart();
+        updateBarChart();
+    }
+
 
 function updateHeatmapChart() {
     console.log("heat");
@@ -635,6 +678,277 @@ function updateRadarChart() {
         },
     });
 }
+function updateBubbleChart() {
+        console.log('Updating Bubble Chart...');
+        const tasks = <?php echo json_encode($tasks); ?>;
+        const ctx = document.getElementById("bubbleChart").getContext("2d");
+
+        // Destroy previous chart instance if it exists
+        if (bubbleChartInstance) {
+            bubbleChartInstance.destroy();
+            bubbleChartInstance = null;
+        }
+
+        // Prepare data
+        const data = tasks.map(task => {
+            return {
+                x: new Date(task.due_date).getTime(), // Due date as timestamp
+                y: parseFloat(task.estimated_load),
+                r: Math.sqrt(task.estimated_load) * 5, // Bubble radius proportional to estimated load
+                label: task.title,
+                group: task.group_name || 'Personal',
+            };
+        });
+
+        // Define x-axis based on current mode
+        let xScaleOptions;
+        if (currentMode === 'tasks') {
+            xScaleOptions = {
+                type: 'time',
+                time: {
+                    unit: 'day',
+                    tooltipFormat: 'MMM D, YYYY',
+                    displayFormats: {
+                        day: 'MMM D',
+                    },
+                },
+                title: {
+                    display: true,
+                    text: 'Due Date',
+                },
+                ticks: {
+                    autoSkip: true,
+                    maxTicksLimit: 20,
+                },
+            };
+        } else {
+            xScaleOptions = {
+                type: 'category',
+                title: {
+                    display: true,
+                    text: 'Groups',
+                },
+                ticks: {
+                    autoSkip: false,
+                },
+            };
+        }
+
+        // Create the bubble chart
+        bubbleChartInstance = new Chart(ctx, {
+            type: 'bubble',
+            data: {
+                datasets: [{
+                    label: 'Tasks',
+                    data: data,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Disable aspect ratio
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: context => {
+                                const label = context.raw.label || '';
+                                const group = context.raw.group || '';
+                                const yValue = context.raw.y;
+                                return `${label} (${group}): ${yValue}`;
+                            },
+                        },
+                    },
+                    legend: {
+                        display: false,
+                    },
+                },
+                scales: {
+                    x: xScaleOptions,
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Estimated Load',
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    function updatePieChart() {
+        console.log('Updating Pie Chart...');
+        const tasks = <?php echo json_encode($tasks); ?>;
+        const ctx = document.getElementById("pieChart").getContext("2d");
+
+        // Destroy previous chart instance if it exists
+        if (pieChartInstance) {
+            pieChartInstance.destroy();
+            pieChartInstance = null;
+        }
+
+        // Prepare data: Distribution of tasks across groups
+        const groupCounts = {};
+        tasks.forEach(task => {
+            const group = currentMode === 'tasks' ? 'All Tasks' : (task.group_name || 'Personal');
+            if (!groupCounts[group]) {
+                groupCounts[group] = 0;
+            }
+            groupCounts[group] += 1;
+        });
+
+        const labels = Object.keys(groupCounts);
+        const dataValues = Object.values(groupCounts);
+        const backgroundColors = generateColors(labels.length);
+
+        // Create the pie chart
+        pieChartInstance = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dataValues,
+                    backgroundColor: backgroundColors,
+                    borderColor: '#fff',
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Disable aspect ratio
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: context => {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.chart._metasets[context.datasetIndex].total;
+                                const percentage = ((value / total) * 100).toFixed(2);
+                                return `${label}: ${value} (${percentage}%)`;
+                            },
+                        },
+                    },
+                    legend: {
+                        position: 'right',
+                    },
+                },
+            },
+        });
+    }
+
+    function updateBarChart() {
+        console.log('Updating Bar Chart...');
+        const tasks = <?php echo json_encode($tasks); ?>;
+        const ctx = document.getElementById("barChart").getContext("2d");
+
+        // Destroy previous chart instance if it exists
+        if (barChartInstance) {
+            barChartInstance.destroy();
+            barChartInstance = null;
+        }
+
+        // Prepare data: Total estimated load per day (Tasks mode) or per group (Groups mode)
+        let labels, dataValues;
+        if (currentMode === 'tasks') {
+            const loadPerDay = {};
+            tasks.forEach(task => {
+                const day = new Date(task.due_date).toLocaleDateString();
+                if (!loadPerDay[day]) {
+                    loadPerDay[day] = 0;
+                }
+                loadPerDay[day] += parseFloat(task.estimated_load);
+            });
+            labels = Object.keys(loadPerDay).sort((a, b) => new Date(a) - new Date(b));
+            dataValues = labels.map(day => loadPerDay[day]);
+        } else {
+            const loadPerGroup = {};
+            tasks.forEach(task => {
+                const group = task.group_name || 'Personal';
+                if (!loadPerGroup[group]) {
+                    loadPerGroup[group] = 0;
+                }
+                loadPerGroup[group] += parseFloat(task.estimated_load);
+            });
+            labels = Object.keys(loadPerGroup);
+            dataValues = labels.map(group => loadPerGroup[group]);
+        }
+
+        const backgroundColors = generateColors(labels.length);
+
+        // Create the bar chart
+        barChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Estimated Load',
+                    data: dataValues,
+                    backgroundColor: backgroundColors,
+                    borderColor: 'rgba(0,0,0,0.1)',
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Disable aspect ratio
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: currentMode === 'tasks' ? 'Due Dates' : 'Groups',
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 90,
+                            minRotation: 45,
+                        },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Total Estimated Load',
+                        },
+                    },
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: context => {
+                                const label = context.label || '';
+                                const value = context.parsed.y || 0;
+                                return `${label}: ${value}`;
+                            },
+                        },
+                    },
+                    legend: {
+                        display: false,
+                    },
+                },
+            },
+        });
+    }
+
+    function generateColors(num) {
+        const colors = [];
+        const baseColors = [
+            'rgba(255, 99, 132, 0.6)',
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(255, 206, 86, 0.6)',
+            'rgba(75, 192, 192, 0.6)',
+            'rgba(153, 102, 255, 0.6)',
+            'rgba(255, 159, 64, 0.6)',
+            'rgba(199, 199, 199, 0.6)',
+            'rgba(83, 102, 255, 0.6)',
+            'rgba(255, 102, 255, 0.6)',
+            'rgba(102, 255, 102, 0.6)',
+        ];
+        for (let i = 0; i < num; i++) {
+            colors.push(baseColors[i % baseColors.length]);
+        }
+        return colors;
+    }
 
     function updateProgressBar(loadPercentage) {
         const loadProgressBar = document.querySelector("#loadProgressBar");
@@ -664,8 +978,12 @@ function updateRadarChart() {
         console.log("gasdfa");
 
         // Initialize charts
+        updateHeatmapChart();
         updateRadarChart();
         updateScatterChart();
+        updateBubbleChart();
+        updatePieChart();
+        updateBarChart();
     });
 </script>
 
@@ -690,5 +1008,8 @@ function updateRadarChart() {
             min-width: 100px;
         }
     }
+    .card-body {
+    padding: 10px; /* Adjust as needed */
+}
 
 </style>
