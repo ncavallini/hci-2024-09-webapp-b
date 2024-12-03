@@ -1,32 +1,36 @@
-<nav class="navbar bg-body-tertiary ">
-  <div class="container-fluid">
-   <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <a class="navbar-toggler" href="index.php?page=dashboard"><i class="fa-solid fa-house"></i></a>
-    <button class="navbar-toggler" onclick="javascript:window.history.go(-1)"><i class="fa-solid fa-arrow-left"></i></button>
-    <!--<a class="navbar-brand" href="#">Visualizing Mental Load</a>-->
-    
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-      <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Visualizing Mental Load</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body">
-        <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+<nav class="navbar fixed-bottom navbar-expand-lg p-3" style="background-color: #4B286D;">
+  <div class="container-fluid d-flex justify-content-around">
+    <!-- Dashboard Link -->
+    <a href="index.php?page=dashboard" class="nav-item nav-link text-center" style="color: white;">
+      <i class="fa-solid fa-house fa-lg" style="color: #9A7FB5;"></i>
+      <span class="d-block" style="font-size: 12px; color: #E9D8F6;">Home</span>
+    </a>
 
-          <li class="nav-item">
-            <a class="nav-link" href="index.php?page=dashboard">Dashboard</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="index.php?page=visualize">Visualize</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="index.php?page=manage">Manage</a>
-          </li>
-        </ul>
-      </div>
-    </div>
+    <!-- Manage Link -->
+    <a href="index.php?page=manage" class="nav-item nav-link text-center" style="color: white;">
+      <i class="fa-solid fa-calendar fa-lg" style="color: #9A7FB5;"></i>
+      <span class="d-block" style="font-size: 12px; color: #E9D8F6;">Manage</span>
+    </a>
+
+    <!-- Visualize Link -->
+    <a href="index.php?page=visualize" class="nav-item nav-link text-center" style="color: white;">
+      <i class="fa-solid fa-chart-pie fa-lg" style="color: #9A7FB5;"></i>
+      <span class="d-block" style="font-size: 12px; color: #E9D8F6;">Visualize</span>
+    </a>
   </div>
 </nav>
-<br>
+
+<style>
+  .navbar {
+    box-shadow: 0 -3px 5px rgba(0, 0, 0, 0.2);
+    border-top: 2px solid #9A7FB5;
+  }
+
+  .nav-item:hover i {
+    color: #E9D8F6;
+  }
+
+  .nav-item:hover span {
+    color: #FFFFFF;
+  }
+</style>

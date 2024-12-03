@@ -54,7 +54,7 @@ foreach ($result as $row) {
 <h1 class="text-center">Welcome, <?php echo $_SESSION['user']['first_name'] ?></h1>
 <br>
 <div class="list-group">
-  <a href="index.php?page=visualize" class="text-center list-group-item list-group-item-action active"><i class="fa-solid fa-chart-pie"></i> Visualize</a>
+  <a href="index.php?page=visualize" class="text-center btn btn-visualize"><i class="fa-solid fa-chart-pie"></i> Visualize</a>
 </div>
 
 <p>&nbsp;&nbsp;</p>
@@ -436,5 +436,50 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 <div class="list-group">
-  <a href="index.php?page=manage" class="text-center list-group-item list-group-item-action active"><i class="fa-solid fa-gear"></i> Manage</a>
+  <a href="index.php?page=manage" class="btn btn-visualize text-center "><i class="fa-solid fa-gear"></i> Manage</a>
 </div>
+<style>
+ 
+/* General Button Style */
+.btn {
+    display: inline-block;
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #4B286D; /* Dark Purple text */
+    text-decoration: none;
+    border-radius: 8px; /* Rounded corners */
+    transition: background-color 0.3s, transform 0.2s ease;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Specific Button Colors */
+.btn-visualize {
+    background-color: #E0D7F3; /* Light Lavender */
+}
+
+.btn-manage {
+    background-color: #D9E2FA; /* Slightly blue lavender for Manage */
+}
+
+/* Hover State */
+.btn:hover {
+    transform: scale(1.05); /* Slightly larger on hover */
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.2); /* More pronounced shadow */
+}
+
+/* Active/Clicked State */
+.btn:active {
+    transform: scale(0.98); /* Slightly smaller on click */
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1); /* Softer shadow */
+}
+
+/* Disabled State */
+.btn[disabled] {
+    background-color: #F0EAFB; /* Muted Lavender */
+    color: #A8A2BA; /* Faded text */
+    pointer-events: none;
+    cursor: not-allowed;
+}
+</style>

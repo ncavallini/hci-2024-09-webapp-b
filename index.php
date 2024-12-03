@@ -86,4 +86,51 @@
         align-items: center; /* Center vertically */
         z-index: 1050; /* Ensure it's on top of other content */
     }
+    body {
+    background-color: #4B286D; /* Replace with your Figma color */
+    color: #FFFFFF; /* Optional: Adjust text color for readability */
+    font-family: 'Arial', sans-serif; /* Optional: Match fonts if required */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+a {
+    color: #E9D8F6; /* Lighter contrast color */
+}
+a:hover {
+    color: #FFFFFF; /* On hover */
+}
+/* General Button Styles */
+/* General Button Styles */
+button, .btn {
+    background-color: #E0D7F3; /* Light Lavender */
+    color: #4B286D; /* Dark Purple text for contrast */
+    border: none;
+    border-radius: 8px; /* Slightly rounded corners for elegance */
+    padding: 12px 18px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Button Hover State */
+button:hover, .btn:hover {
+    background-color: #D2C6EE; /* Slightly darker Lavender for hover effect */
+    transform: scale(1.05); /* Subtle enlargement */
+}
+
+/* Active Button State */
+button:active, .btn:active {
+    background-color: #C3B3E8; /* Darker Lavender for active state */
+    transform: scale(0.98); /* Slightly shrink on click */
+}
+
+/* Disabled Button State */
+button:disabled, .btn:disabled {
+    background-color: #F0EAFB; /* Faded Lavender */
+    color: #A8A2BA; /* Muted text */
+    cursor: not-allowed;
+}
 </style>
