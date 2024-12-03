@@ -87,14 +87,15 @@ try {
     <!-- Mode Buttons (Tasks or Groups) -->
     <div class="row mb-3">
         <div class="col-12 d-flex flex-wrap justify-content-center gap-2">
-            <select id="groupSelect" class="form-select" style="width: 200px;" onchange="groupSelectionChanged()">
-                <option value="personal">Personal</option>
-                <?php foreach ($groups as $group): ?>
-                    <option value="<?php echo htmlspecialchars($group['group_id']); ?>">
-                        <?php echo htmlspecialchars($group['name']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
+        <select id="groupSelect" class="form-select" style="width: 200px;" onchange="groupSelectionChanged()">
+            <option value="all">All</option>
+            <option value="personal">Personal</option>
+            <?php foreach ($groups as $group): ?>
+                <option value="<?php echo htmlspecialchars($group['group_id']); ?>">
+                    <?php echo htmlspecialchars($group['name']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
         </div>
     </div>
 
@@ -102,7 +103,7 @@ try {
     <!-- Heatmap Chart -->
 <div class="card mb-4 shadow-sm rounded" id="heatmapChartCard">
     <div class="card-header">
-        <h5 class="card-title mb-0">Heatmap</h5>
+        <h5 class="card-title mb-0">Task Load Intensity Heatmap</h5>
     </div>
     <div class="card-body">
         <div class="chart-container">
@@ -114,7 +115,7 @@ try {
 <!-- Radar Chart -->
 <div class="card mb-4 shadow-sm rounded" id="radarChartCard">
     <div class="card-header">
-        <h5 class="card-title mb-0">Radar Chart</h5>
+        <h5 class="card-title mb-0">Task Load Distribution Radar</h5>
     </div>
     <div class="card-body">
         <div class="chart-container">
@@ -126,7 +127,7 @@ try {
 <!-- Scatter Chart -->
     <div class="card mb-4 shadow-sm rounded" id="scatterChartCard">
         <div class="card-header">
-            <h5 class="card-title mb-0">Scatter Chart</h5>
+            <h5 class="card-title mb-0">Task Load vs. Due Date Scatter</h5>
         </div>
         <div class="card-body">
             <div class="chart-container">
@@ -138,7 +139,7 @@ try {
     <!-- Bubble Chart -->
     <div class="card mb-4 shadow-sm rounded" id="bubbleChartCard">
         <div class="card-header">
-            <h5 class="card-title mb-0">Bubble Chart</h5>
+            <h5 class="card-title mb-0">Task Priority Bubble Chart</h5>
         </div>
         <div class="card-body">
             <div class="chart-container">
@@ -150,7 +151,7 @@ try {
     <!-- Pie Chart -->
     <div class="card mb-4 shadow-sm rounded" id="pieChartCard">
         <div class="card-header">
-            <h5 class="card-title mb-0">Pie Chart</h5>
+            <h5 class="card-title mb-0">Estimated Load Distribution by Task</h5>
         </div>
         <div class="card-body">
             <div class="chart-container">
@@ -162,7 +163,7 @@ try {
     <!-- Bar Chart -->
     <div class="card mb-4 shadow-sm rounded" id="barChartCard">
         <div class="card-header">
-            <h5 class="card-title mb-0">Bar Chart</h5>
+            <h5 class="card-title mb-0">Total Estimated Load Over Time</h5>
         </div>
         <div class="card-body">
             <div class="chart-container">
@@ -214,7 +215,9 @@ try {
     }
 
     function filterTasksByGroup(tasks, group) {
-        if (group === 'personal') {
+        if (group === 'all') {
+            return tasks; // Return all tasks without filtering
+        } else if (group === 'personal') {
             return tasks.filter(task => task.group_id == 0);
         } else {
             return tasks.filter(task => task.group_id == group);
@@ -612,13 +615,7 @@ try {
                     legend: {
                         position: 'right',
                     },
-                    title: {
-                        display: true,
-                        text: 'Estimated Load Distribution by Task',
-                        font: {
-                            size: 16
-                        }
-                    }
+                 
                 },
             },
         });
