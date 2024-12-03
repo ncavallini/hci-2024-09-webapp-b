@@ -673,7 +673,6 @@ function updateRadarChart() {
     .chart-container {
         position: relative;
         width: 100%;
-        height: 60vh; /* Adjust height as needed */
     }
 
     .card.shadow-sm.rounded {
@@ -691,4 +690,5 @@ function updateRadarChart() {
             min-width: 100px;
         }
     }
+
 </style>
