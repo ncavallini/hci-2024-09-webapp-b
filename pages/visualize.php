@@ -191,7 +191,7 @@ try {
 <script>
     console.log('Script loaded');
 
-    let selectedGroup = 'personal'; // Default selection
+    let selectedGroup = 'all'; // Default selection
     let tasks = <?php echo json_encode($tasks); ?>;
 
     let heatmapChartInstance;
