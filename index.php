@@ -80,57 +80,53 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(255, 255, 255, 0.8); /* Light semi-transparent background */
-        display: flex; /* Center content using Flexbox */
-        justify-content: center; /* Center horizontally */
-        align-items: center; /* Center vertically */
-        z-index: 1050; /* Ensure it's on top of other content */
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1050;
     }
     body {
-    background-color: #4B286D; /* Replace with your Figma color */
-    color: #FFFFFF; /* Optional: Adjust text color for readability */
-    font-family: 'Arial', sans-serif; /* Optional: Match fonts if required */
+    background-color: #4B286D;
+    color: #FFFFFF;
+    font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 a {
-    color: #E9D8F6; /* Lighter contrast color */
+    color: #E9D8F6;
 }
 a:hover {
-    color: #FFFFFF; /* On hover */
+    color: #FFFFFF;
 }
-/* General Button Styles */
-/* General Button Styles */
+
 button, .btn {
-    background-color: #E0D7F3; /* Light Lavender */
-    color: #4B286D; /* Dark Purple text for contrast */
+    background-color: #E0D7F3;
+    color: #4B286D;
     border: none;
-    border-radius: 8px; /* Slightly rounded corners for elegance */
+    border-radius: 8px;
     padding: 12px 18px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-/* Button Hover State */
 button:hover, .btn:hover {
-    background-color: #D2C6EE; /* Slightly darker Lavender for hover effect */
-    transform: scale(1.05); /* Subtle enlargement */
+    background-color: #D2C6EE;
+    transform: scale(1.05);
 }
 
-/* Active Button State */
 button:active, .btn:active {
-    background-color: #C3B3E8; /* Darker Lavender for active state */
-    transform: scale(0.98); /* Slightly shrink on click */
+    background-color: #C3B3E8;
+    transform: scale(0.98);
 }
 
-/* Disabled Button State */
 button:disabled, .btn:disabled {
-    background-color: #F0EAFB; /* Faded Lavender */
-    color: #A8A2BA; /* Muted text */
+    background-color: #F0EAFB;
+    color: #A8A2BA;
     cursor: not-allowed;
 }
 </style>
