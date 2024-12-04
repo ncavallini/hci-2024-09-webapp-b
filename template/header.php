@@ -114,11 +114,9 @@ a {
     if ($current_page !== 'dashboard') {
         echo '
             <button class="btn-secondary me-3" onclick="history.back();" aria-label="Go Back">
-        <i class="fas fa-arrow-left me-2"></i> Back
-      </button>
+              <i class="fas fa-arrow-left me-2"></i> Backasdf
+            </button>
         ';
-    } else {
-      
     }
 ?>
     </div>

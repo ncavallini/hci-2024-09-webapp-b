@@ -171,32 +171,6 @@ body {
 
 
 <body>
-<header class="container-fluid p-3">
-        <div class="d-flex align-items-center justify-content-between">
-            <?php
-                // Determine the current page
-                $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
-                // If not on dashboard, show back button
-                if ($current_page !== 'dashboard') {
-                    echo "
-                        <button class='btn btn-secondary' onclick='history.back();' aria-label='Go Back' style='color: #4B286D; background-color: transparent; border: none;'>
-                            <i class='fas fa-arrow-left me-2'></i> Back
-                        </button>
-                    ";
-                } else {
-                    echo '<a href="actions/auth/logout.php" class="btn btn-danger logout-button">
-                        <i class="fas fa-sign-out-alt me-2"></i> Logout
-                    </a>  <div style="height: 20vh"></div>
-';
-                }
-            ?>
-
-            
-        </div>
-
-        <!-- Navigation Bar -->
-        <?php require_once __DIR__ . "/nav.php"; ?>
-    </header>
 
 
     <!-- Bottom Navigation Bar -->

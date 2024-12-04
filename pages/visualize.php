@@ -18,7 +18,6 @@ try {
     $stmt->execute([$user_id, $user_id]);
     $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    
     // Calculate total mental load
     $total_load = array_sum(array_column($tasks, 'estimated_load'));
 
@@ -49,7 +48,6 @@ try {
     $stmt = $dbconnection->prepare($sql);
     $stmt->execute([$user_id]);
     $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
 
 <div class="container mt-5">
@@ -87,44 +85,44 @@ try {
     <!-- Mode Buttons (Tasks or Groups) -->
     <div class="row mb-3">
         <div class="col-12 d-flex flex-wrap justify-content-center gap-2">
-        <select id="groupSelect" class="form-select" style="width: 200px;" onchange="groupSelectionChanged()">
-            <option value="all">All</option>
-            <option value="personal">Personal</option>
-            <?php foreach ($groups as $group): ?>
-                <option value="<?php echo htmlspecialchars($group['group_id']); ?>">
-                    <?php echo htmlspecialchars($group['name']); ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
+            <select id="groupSelect" class="form-select" style="width: 200px;" onchange="groupSelectionChanged()">
+                <option value="all">All</option>
+                <option value="personal">Personal</option>
+                <?php foreach ($groups as $group): ?>
+                    <option value="<?php echo htmlspecialchars($group['group_id']); ?>">
+                        <?php echo htmlspecialchars($group['name']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
     </div>
 
-    <!-- Chart Container -->
+    <!-- Chart Containers -->
     <!-- Heatmap Chart -->
-<div class="card mb-4 shadow-sm rounded" id="heatmapChartCard">
-    <div class="card-header">
-        <h5 class="card-title mb-0">Task Load Intensity Heatmap</h5>
-    </div>
-    <div class="card-body">
-        <div class="chart-container">
-            <canvas id="heatmapChart"></canvas>
+    <div class="card mb-4 shadow-sm rounded" id="heatmapChartCard">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Task Load Intensity Heatmap</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="heatmapChart"></canvas>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Radar Chart -->
-<div class="card mb-4 shadow-sm rounded" id="radarChartCard">
-    <div class="card-header">
-        <h5 class="card-title mb-0">Task Load Distribution Radar</h5>
-    </div>
-    <div class="card-body">
-        <div class="chart-container">
-            <canvas id="radarChart"></canvas>
+    <!-- Radar Chart -->
+    <div class="card mb-4 shadow-sm rounded" id="radarChartCard">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Task Load Distribution Radar</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="radarChart"></canvas>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Scatter Chart -->
+    <!-- Scatter Chart -->
     <div class="card mb-4 shadow-sm rounded" id="scatterChartCard">
         <div class="card-header">
             <h5 class="card-title mb-0">Task Load vs. Due Date Scatter</h5>
@@ -132,7 +130,7 @@ try {
         <div class="card-body">
             <div class="chart-container">
                 <canvas id="scatterChart"></canvas>
-                </div>
+            </div>
         </div>
     </div>
 
@@ -188,7 +186,7 @@ try {
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
 
 <!-- Your custom script should come after the libraries -->
-<script src="path/to/your/custom/script.js"></script>
+<!-- <script src="path/to/your/custom/script.js"></script> -->
 
 <script>
     console.log('Script loaded');
@@ -259,6 +257,15 @@ try {
                 v: task.estimated_load,
             });
         });
+
+        if (dataMatrix.length === 0) {
+            // No data, hide the chart card
+            document.getElementById("heatmapChartCard").style.display = 'none';
+            return;
+        } else {
+            // Data exists, ensure the chart card is visible
+            document.getElementById("heatmapChartCard").style.display = '';
+        }
 
         const xLabels = Array.from(xLabelsSet).sort((a, b) => new Date(a) - new Date(b));
         const yLabels = Array.from(yLabelsSet);
@@ -353,6 +360,15 @@ try {
         const labels = taskData.map(task => task.title);
         const dataValues = taskData.map(task => parseFloat(task.estimated_load));
 
+        if (dataValues.length === 0) {
+            // No data, hide the chart card
+            document.getElementById("radarChartCard").style.display = 'none';
+            return;
+        } else {
+            // Data exists, ensure the chart card is visible
+            document.getElementById("radarChartCard").style.display = '';
+        }
+
         // Create the radar chart
         radarChartInstance = new Chart(ctx, {
             type: 'radar',
@@ -416,6 +432,15 @@ try {
                 label: task.title,
             };
         });
+
+        if (data.length === 0) {
+            // No data, hide the chart card
+            document.getElementById("scatterChartCard").style.display = 'none';
+            return;
+        } else {
+            // Data exists, ensure the chart card is visible
+            document.getElementById("scatterChartCard").style.display = '';
+        }
 
         // Create the scatter chart
         scatterChartInstance = new Chart(ctx, {
@@ -500,6 +525,15 @@ try {
                 label: task.title,
             };
         });
+
+        if (data.length === 0) {
+            // No data, hide the chart card
+            document.getElementById("bubbleChartCard").style.display = 'none';
+            return;
+        } else {
+            // Data exists, ensure the chart card is visible
+            document.getElementById("bubbleChartCard").style.display = '';
+        }
 
         // Create the bubble chart
         bubbleChartInstance = new Chart(ctx, {
@@ -587,6 +621,15 @@ try {
         const dataValues = Object.values(loadPerTask);
         const backgroundColors = generateColors(labels.length);
 
+        if (dataValues.length === 0) {
+            // No data, hide the chart card
+            document.getElementById("pieChartCard").style.display = 'none';
+            return;
+        } else {
+            // Data exists, ensure the chart card is visible
+            document.getElementById("pieChartCard").style.display = '';
+        }
+
         // Create the pie chart
         pieChartInstance = new Chart(ctx, {
             type: 'pie',
@@ -617,7 +660,6 @@ try {
                     legend: {
                         position: 'right',
                     },
-                 
                 },
             },
         });
@@ -649,6 +691,15 @@ try {
         const dataValues = labels.map(day => loadPerDay[day]);
 
         const backgroundColors = generateColors(labels.length);
+
+        if (dataValues.length === 0) {
+            // No data, hide the chart card
+            document.getElementById("barChartCard").style.display = 'none';
+            return;
+        } else {
+            // Data exists, ensure the chart card is visible
+            document.getElementById("barChartCard").style.display = '';
+        }
 
         // Create the bar chart
         barChartInstance = new Chart(ctx, {
@@ -782,8 +833,8 @@ try {
             min-width: 100px;
         }
     }
-    .card-body {
-    padding: 10px; /* Adjust as needed */
-}
 
+    .card-body {
+        padding: 10px; /* Adjust as needed */
+    }
 </style>
