@@ -18,3 +18,4 @@
 </form>
 <br>
 <p>Don't have an account? <a href="index.php?page=signup">Sign Up</a>!</p>
+<div style="height: 10vh"></div>

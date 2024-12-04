@@ -173,6 +173,8 @@ try {
     </div>
 </div>
 
+<div style="height: 10vh"></div>
+
 <!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 

@@ -150,6 +150,7 @@ if (!$group) {
         <i class="fa fa-trash"></i> Delete Group
     </a>
 </div>
+<div style="height: 10vh"></div>
 
 <script>
     const setAccordionStatusLink = document.getElementById("set-accordion-status-link");

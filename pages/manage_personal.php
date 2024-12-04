@@ -58,6 +58,8 @@
   <li class="list-group-item list-group-item-action list-group-item-danger" onclick="confirmProfileDeletion()"><i class="fa fa-trash me-1"></i>Delete Profile</li>
 
 </ul>
+<div style="height: 10vh"></div>
+
 
 <script>
     $(document).ready(function() {

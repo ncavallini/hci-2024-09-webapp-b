@@ -47,6 +47,7 @@ $group_id = $_GET['group_id'] ?? 0;
     <br>
     <button type="submit" class="btn btn-primary">Add</button>
 </form>
+<div style="height: 10vh"></div>
 
 <script>
     const range = document.getElementById("estimated_load");

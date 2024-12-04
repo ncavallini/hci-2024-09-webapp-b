@@ -41,6 +41,7 @@
     <button type="button" class="btn btn-primary" onclick="onFormSubmit(this)">Add</button>
 
 </form>
+<div style="height: 10vh"></div>
 
 <script>
     function onFormSubmit(event) {

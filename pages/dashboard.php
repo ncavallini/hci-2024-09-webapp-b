@@ -436,10 +436,15 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 <div class="list-group">
-  <a href="index.php?page=manage" class="btn btn-visualize text-center "><i class="fa-solid fa-gear"></i> Manage</a>
+  <a href="index.php?page=manage" class="btn btn-visualize text-center; "><i class="fa-solid fa-gear"></i> Manage</a>
 </div>
+        </div>
+   
+   
+
 <style>
  
+
 /* General Button Style */
 .btn {
     display: inline-block;
@@ -481,5 +486,9 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
     color: #A8A2BA; /* Faded text */
     pointer-events: none;
     cursor: not-allowed;
+}
+
+body {
+  padding-bottom: 20vh;
 }
 </style>

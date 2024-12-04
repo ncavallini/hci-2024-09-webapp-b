@@ -93,9 +93,17 @@ $taskDetails = json_encode($groupedData); // Task details grouped by date
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
 
-    <h1>Total Mental Load Over the Past 7 Days</h1>
-    <div class="container mt-4">
-        <canvas id="lineChart" width="400" height="200"></canvas>
+   
+
+    <div class="card mb-4 shadow-sm rounded" id="scatterChartCard">
+        <div class="card-header">
+            <h1>Total Mental Load Over the Past 7 Days</h1>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="lineChart" width="400" height="200"></canvas>
+            </div>
+        </div>
     </div>
 
     <!-- Modal for Task Details -->
@@ -115,6 +123,7 @@ $taskDetails = json_encode($groupedData); // Task details grouped by date
             </div>
         </div>
     </div>
+    <div style="height: 10vh"></div>
 
     <script>
     document.addEventListener("DOMContentLoaded", () => {

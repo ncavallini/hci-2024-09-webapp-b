@@ -79,6 +79,7 @@
     <button type="button" class="btn btn-primary" onclick="onFormSubmit(this)">Save</button>
 
 </form>
+<div style="height: 10vh"></div>
 
 <script>
     function onFormSubmit(event) {

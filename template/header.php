@@ -1,3 +1,17 @@
+<?php
+    // Determine the current page
+    $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+    // If not on dashboard, show back button
+    if ($current_page !== 'dashboard') {
+        echo "
+            <button class='btn btn-secondary' onclick='history.back();' aria-label='Go Back' style='color: #4B286D; background-color: transparent; border: none;'>
+                <i class='fas fa-arrow-left me-2'></i> Back
+            </button>
+        ";
+    } else {
+      
+    }
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,7 +51,48 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@3.1.0/dist/chartjs-chart-treemap.min.js"></script>
 
+<style>
+  /* Footer Styling */
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #f8f9fa; /* Light background for visibility */
+    z-index: 1040; /* Higher than Bootstrap's navbar z-index (1030) */
+}
 
+footer .card {
+    border-radius: 0; /* Remove border radius for a seamless fit */
+}
+
+footer .card-header {
+    background-color: #f8f9fa; /* Match with footer background */
+    color: #4B286D; /* Text color as specified */
+}
+
+footer .card-body {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px;
+    color: #4B286D; /* Clock text color */
+}
+
+/* Ensure content above the footer is not hidden */
+body {
+    padding-bottom: 100px; /* Adjust based on footer height */
+}
+
+/* Logout Link Hover Effect */
+.logout-link:hover {
+    text-decoration: underline;
+    color: #4B286D; /* Change color on hover if desired */
+}
+
+a {
+  color: #4B286D;
+}
+</style>
 
     
 
@@ -45,45 +100,36 @@
 
 
 <body>
+  
   <!-- Header with Back Button and Title -->
   <header class="container-fluid p-3">
     <div class="d-flex align-items-center">
       <!-- Back Button -->
-      <button class="btn-secondary me-3" onclick="history.back();" aria-label="Go Back">
+      
+
+      <?php
+    // Determine the current page
+    $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+    // If not on dashboard, show back button
+    if ($current_page !== 'dashboard') {
+        echo '
+            <button class="btn-secondary me-3" onclick="history.back();" aria-label="Go Back">
         <i class="fas fa-arrow-left me-2"></i> Back
       </button>
-
-    
+        ';
+    } else {
+      
+    }
+?>
     </div>
 
     <!-- Navigation Bar -->
-    <?php require_once __DIR__ . "/nav.php"; ?>
   </header>
   
 
 
   <!-- Bottom Navigation Bar -->
-  <nav class="navbar fixed-bottom navbar-expand-lg p-3" style="background-color: #4B286D;">
-    <div class="container-fluid d-flex justify-content-around">
-      <!-- Dashboard Link -->
-      <a href="index.php?page=dashboard" class="nav-item nav-link text-center" style="color: white;">
-        <i class="fa-solid fa-house fa-lg" style="color: #9A7FB5;"></i>
-        <span class="d-block" style="font-size: 12px; color: #E9D8F6;">Home</span>
-      </a>
-
-      <!-- Manage Link -->
-      <a href="index.php?page=manage" class="nav-item nav-link text-center" style="color: white;">
-        <i class="fa-solid fa-calendar fa-lg" style="color: #9A7FB5;"></i>
-        <span class="d-block" style="font-size: 12px; color: #E9D8F6;">Manage</span>
-      </a>
-
-      <!-- Visualize Link -->
-      <a href="index.php?page=visualize" class="nav-item nav-link text-center" style="color: white;">
-        <i class="fa-solid fa-chart-pie fa-lg" style="color: #9A7FB5;"></i>
-        <span class="d-block" style="font-size: 12px; color: #E9D8F6;">Visualize</span>
-      </a>
-    </div>
-  </nav>
+  
   <script>
     (function() {
       let touchStartX = 0;

@@ -22,6 +22,8 @@
         <a class="btn btn-secondary" href="index.php?page=dashboard">Skip</a>
     </div>
 </form>
+<div style="height: 10vh"></div>
+
 <script>
     const range1 = document.getElementById("q1");
     const span1 = document.getElementById("q1_span");

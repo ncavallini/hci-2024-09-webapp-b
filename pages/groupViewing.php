@@ -203,6 +203,8 @@ try {
             </div>
         </div>
     </div>
+    <div style="height: 10vh"></div>
+
 <script>
     let heatmapChart;
     let radarChart;

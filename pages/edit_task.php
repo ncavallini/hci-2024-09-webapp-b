@@ -46,6 +46,7 @@ if(!$task) {
     <input type="hidden" name="group_id" value="<?php echo $group_id ?>">
     <button type="submit" class="btn btn-primary">Save</button>
 </form>
+<div style="height: 10vh"></div>
 
 <script>
     const range = document.getElementById("estimated_load");
