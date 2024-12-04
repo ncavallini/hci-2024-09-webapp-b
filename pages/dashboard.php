@@ -7,10 +7,62 @@ $sql = "
   JOIN tasks t ON s.task_id = t.task_id
   WHERE s.user_id = :user_id
 ";
+
+$sql = "
+    SELECT 
+        t.title, 
+        t.description, 
+        t.due_date, 
+        t.estimated_load, 
+        'Personal' AS group_name, 
+        0 AS group_id, 
+        t.is_completed,
+        s.ans1,
+        s.ans2,
+        s.ans3,
+        s.ans4
+    FROM 
+        tasks t
+    LEFT JOIN 
+        surveys s ON s.task_id = t.task_id AND s.user_id = :user_id
+    WHERE 
+        t.user_id = :user_id 
+        AND t.is_completed = 1
+
+    UNION ALL
+
+    SELECT 
+        gt.title, 
+        gt.description, 
+        gt.due_date, 
+        gt.estimated_load, 
+        g.name AS group_name, 
+        g.group_id, 
+        gt.is_completed,
+        gs.ans1,
+        gs.ans2,
+        gs.ans3,
+        gs.ans4
+    FROM 
+        group_tasks gt
+    JOIN 
+        groups g ON gt.group_id = g.group_id
+    LEFT JOIN 
+        group_surveys gs ON gs.group_task_id = gt.group_task_id AND gs.user_id = :user_id
+    WHERE 
+        gt.user_id = :user_id
+        AND gt.is_completed = 1
+
+    ORDER BY 
+        due_date ASC
+";
+
 $stmt = $dbconnection->prepare($sql);
 $stmt->bindValue(":user_id", Auth::user()['user_id']);
 $stmt->execute();
 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 
 // Prepare data for Chart.js
 $chartData = [
@@ -28,7 +80,7 @@ $colors = [
 ];
 
 foreach ($result as $row) {
-  $taskName = $row['task_name'];
+  $taskName = $row['title'];
   $likertScores = [$row['ans1'], $row['ans2'], $row['ans3'], $row['ans4']];
   // $sums[] = array_sum($likertScores); // No longer needed for the chart
 
