@@ -439,7 +439,8 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
   <a href="index.php?page=manage" class="btn btn-visualize text-center; "><i class="fa-solid fa-gear"></i> Manage</a>
 </div>
         </div>
-   
+        <div style="height: 10vh"></div>
+
    
 
 <style>

@@ -1,17 +1,4 @@
-<?php
-    // Determine the current page
-    $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
-    // If not on dashboard, show back button
-    if ($current_page !== 'dashboard') {
-        echo "
-            <button class='btn btn-secondary' onclick='history.back();' aria-label='Go Back' style='color: #4B286D; background-color: transparent; border: none;'>
-                <i class='fas fa-arrow-left me-2'></i> Back
-            </button>
-        ";
-    } else {
-      
-    }
-?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -114,10 +101,16 @@ a {
     if ($current_page !== 'dashboard') {
         echo '
             <button class="btn-secondary me-3" onclick="history.back();" aria-label="Go Back">
-              <i class="fas fa-arrow-left me-2"></i> Backasdf
+              <i class="fas fa-arrow-left me-2"></i> Back
             </button>
         ';
-    }
+    }else {
+      echo '
+          <a href="actions/auth/logout.php" class="btn btn-danger logout-button">
+              <i class="fas fa-sign-out-alt me-2"></i> Logout
+          </a>
+      ';
+  }
 ?>
     </div>
 
